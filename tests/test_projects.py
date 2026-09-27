@@ -79,6 +79,19 @@ def test_when_a_frame_is_added_last_capture_is_touched(tmp_path: Path):
     assert last_capture.stat().st_mtime > time.time() - 60
 
 
+def test_when_the_last_frame_is_undone_it_is_removed_from_disk_and_the_list(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+    for _ in range(3):
+        store.add_frame(project.id, jpeg())
+
+    store.undo_last(project.id)
+
+    frames_dir = tmp_path / "projects" / project.id / "frames"
+    assert store.get(project.id).frames == ["00001.jpg", "00002.jpg"]
+    assert sorted(p.name for p in frames_dir.iterdir()) == ["00001.jpg", "00002.jpg"]
+
+
 def ticking_clock():
     """A clock that moves on a minute every time it is read, so creation order is certain."""
     times = (datetime(2026, 9, 27, 9, 0, tzinfo=UTC) + timedelta(minutes=i) for i in range(1000))
