@@ -45,4 +45,4 @@ $STOPMOTION_DATA/
 - [x] Undo
 - [x] Rename + remove + persistence
 - [x] Path safety
-- [ ] PR opened
+- [x] PR opened
