@@ -32,7 +32,7 @@
 ## Progress
 
 - [x] Branch created off fresh `origin/main`
-- [ ] Camera protocol
+- [x] Camera protocol
 - [ ] FakeCamera capture
 - [ ] FakeCamera preview
 - [ ] Lock/unlock
