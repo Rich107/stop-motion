@@ -125,6 +125,14 @@ def test_when_the_only_frame_is_undone_the_thumbnail_is_removed(tmp_path: Path):
     assert not (tmp_path / "projects" / project.id / "thumb.jpg").exists()
 
 
+def test_when_a_project_is_renamed_a_new_store_sees_the_new_name(tmp_path: Path):
+    project = ProjectStore(tmp_path).create("Film 1")
+
+    ProjectStore(tmp_path).rename(project.id, "Space rocket")
+
+    assert ProjectStore(tmp_path).get(project.id).name == "Space rocket"
+
+
 def ticking_clock():
     """A clock that moves on a minute every time it is read, so creation order is certain."""
     times = (datetime(2026, 9, 27, 9, 0, tzinfo=UTC) + timedelta(minutes=i) for i in range(1000))
