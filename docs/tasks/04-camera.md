@@ -31,7 +31,7 @@
 
 ## Progress
 
-- [ ] Branch created off fresh `origin/main`
+- [x] Branch created off fresh `origin/main`
 - [ ] Camera protocol
 - [ ] FakeCamera capture
 - [ ] FakeCamera preview
