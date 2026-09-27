@@ -35,4 +35,9 @@ Settings come from the environment:
 ## CLI scripts
 
 `stopmotion.py` and `stopmotion_stabilised.py` turn a folder of photos into a video from the command
-line. Run either with `--help`.
+line. Run either with `--help`. Both are thin wrappers over `backend/render/`.
+
+`stopmotion_stabilised.py` lines the photos up first. By default it matches each photo to the one
+before it (`--mode chain`), which copes with a scene that changes a lot during the shoot;
+`--mode reference` matches every photo to one frame (`--ref`), which doesn't drift but fails when
+the scene has changed too much.
