@@ -10,3 +10,13 @@ def test_when_images_are_named_img2_and_img10_they_sort_naturally(tmp_path: Path
     images = list_images(tmp_path)
 
     assert [p.name for p in images] == ["IMG1.jpg", "img2.jpg", "img10.jpg"]
+
+
+def test_when_directory_has_non_image_files_they_are_ignored(tmp_path: Path):
+    for name in ["a.jpg", "b.PNG", "notes.txt", ".DS_Store"]:
+        (tmp_path / name).write_bytes(b"")
+    (tmp_path / "sub.jpg").mkdir()
+
+    images = list_images(tmp_path)
+
+    assert [p.name for p in images] == ["a.jpg", "b.PNG"]
