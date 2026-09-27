@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import pytest
 
-from backend.camera.base import Camera, CameraNotOpenError
+from backend.camera.base import CameraNotOpenError
 from backend.camera.picam import PiCamera, auto_controls, fixed_controls, lores_to_bgr
 
 # Stand-ins for libcamera's enums, which only exist on the Pi
