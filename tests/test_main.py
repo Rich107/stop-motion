@@ -13,3 +13,12 @@ def test_when_health_is_called_it_returns_200_with_status_ok(tmp_path: Path):
 
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+def test_when_revision_env_is_set_health_reports_it(monkeypatch, tmp_path: Path):
+    monkeypatch.setenv("REVISION", "abc123")
+    client = TestClient(create_app(Settings.from_env(revision_file=tmp_path / "REVISION")))
+
+    response = client.get("/health")
+
+    assert response.json() == {"status": "ok", "revision": "abc123"}
