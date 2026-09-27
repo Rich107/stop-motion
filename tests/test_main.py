@@ -2,6 +2,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from backend.camera import FakeCamera
 from backend.config import Settings
 from backend.main import app, create_app
 
@@ -39,3 +40,13 @@ def test_when_module_app_is_served_health_returns_200():
     response = client.get("/health")
 
     assert response.status_code == 200
+
+
+def test_when_the_app_starts_the_camera_is_started(tmp_path: Path):
+    camera = FakeCamera()
+    app = create_app(Settings(data_dir=tmp_path, camera="fake", revision="dev"), camera=camera)
+
+    with TestClient(app):
+        is_open = camera.is_open
+
+    assert is_open
