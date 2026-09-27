@@ -133,11 +133,11 @@ def compute_transforms(
     ref_feats = matcher.detect(first)
     if ref_feats[1] is None or len(ref_feats[0]) < MIN_INLIERS:
         raise AlignmentError("Too few features in the reference frame")
-    done = 1
-    if progress:
-        progress(done, len(images), "align")
 
     count = len(images)
+    done = 1
+    if progress:
+        progress(done, count, "align")
     transforms: list[np.ndarray] = [np.eye(3)] * count
     inliers: list[int | None] = [None] * count
     failed: list[int] = []
