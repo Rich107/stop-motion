@@ -1,5 +1,6 @@
 """FastAPI app for the stop-motion Pi."""
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -9,6 +10,8 @@ from fastapi.responses import JSONResponse
 from backend.camera import Camera, get_camera
 from backend.config import Settings
 
+log = logging.getLogger(__name__)
+
 
 def create_app(settings: Settings, camera: Camera | None = None) -> FastAPI:
     """The app; `camera` defaults to the one `settings` names, and runs while the app does."""
@@ -17,7 +20,11 @@ def create_app(settings: Settings, camera: Camera | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        camera.start()
+        try:
+            camera.start()
+        except Exception:
+            # Stay up so /health can say why (and deploy.sh rolls back), rather than crash-looping
+            log.exception("Camera failed to start")
         try:
             yield
         finally:
