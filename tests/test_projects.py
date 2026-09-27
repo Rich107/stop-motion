@@ -199,6 +199,14 @@ def test_when_a_project_does_not_exist_get_raises_project_not_found(tmp_path: Pa
         store.get("abc123")
 
 
+def test_when_a_missing_project_is_removed_it_raises_project_not_found(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    store.create()
+
+    with pytest.raises(ProjectNotFoundError):
+        store.remove("abc123")
+
+
 @pytest.mark.parametrize("bad_id", ["..", "../outside", "a/b", "/etc", "..\\outside", ".", ""])
 @pytest.mark.parametrize(
     "operation",
