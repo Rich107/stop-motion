@@ -13,6 +13,8 @@ from typing import Literal
 import cv2
 import numpy as np
 
+from backend.render.progress import Progress
+
 MIN_INLIERS = 20
 RATIO_TEST = 0.75
 
@@ -114,6 +116,7 @@ def compute_transforms(
     exclude: Sequence[Rect] = (),
     ref_index: int = 0,
     detect_size: int = 1600,
+    progress: Progress | None = None,
 ) -> Alignment:
     """Work out how far each photo has moved from the reference frame.
 
@@ -130,6 +133,9 @@ def compute_transforms(
     ref_feats = matcher.detect(first)
     if ref_feats[1] is None or len(ref_feats[0]) < MIN_INLIERS:
         raise AlignmentError("Too few features in the reference frame")
+    done = 1
+    if progress:
+        progress(done, len(images), "align")
 
     count = len(images)
     transforms: list[np.ndarray] = [np.eye(3)] * count
@@ -151,6 +157,9 @@ def compute_transforms(
                     # Failed photos never become the anchor, so one bad shot can't break the chain
                     anchor_feats, anchor_M = feats, transforms[i]
             prev = transforms[i]
+            done += 1
+            if progress:
+                progress(done, count, "align")
     return Alignment(transforms=transforms, size=size, failed=sorted(failed), inliers=inliers)
 
 
