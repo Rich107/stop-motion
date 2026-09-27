@@ -10,6 +10,9 @@ import numpy as np
 from backend.camera.base import CameraNotOpenError, Size, encode_jpeg
 
 MAX_FRAME_US = 100_000  # longest frame (and so exposure) the preview may slow to: 10 fps
+# Frames come at least every 0.1 s, so this long means the pipeline has stalled. picamera2 then
+# raises TimeoutError rather than holding the lock (and blocking stop()) forever
+FRAME_TIMEOUT_S = 2.0
 # What auto exposure, auto white balance and autofocus settled on, read back from the metadata
 _LOCKED = ("ExposureTime", "AnalogueGain", "ColourGains")
 
@@ -114,20 +117,20 @@ class PiCamera:
 
     def preview_jpeg(self) -> bytes:
         with self._lock:
-            yuv = self._open().capture_array("lores")
+            yuv = self._open().capture_array("lores", wait=FRAME_TIMEOUT_S)
         # Encode outside the lock so a still capture doesn't wait on it
         return encode_jpeg(lores_to_bgr(yuv, self._lores_size), quality=70)
 
     def capture_jpeg(self) -> bytes:
         # A frame from the running main stream, so the preview doesn't stop or change mode
         with self._lock:
-            bgr = self._open().capture_array("main")
+            bgr = self._open().capture_array("main", wait=FRAME_TIMEOUT_S)
         return encode_jpeg(bgr, quality=92)
 
     def lock_settings(self) -> None:
         with self._lock:
             picam2 = self._open()
-            metadata = picam2.capture_metadata()
+            metadata = picam2.capture_metadata(wait=FRAME_TIMEOUT_S)
             manual = self._af_modes[0] if self._af_modes else None
             picam2.set_controls(fixed_controls(metadata, manual_af=manual))
             self._locked = True
