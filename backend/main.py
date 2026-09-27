@@ -10,6 +10,6 @@ def create_app(settings: Settings) -> FastAPI:
 
     @app.get("/health")
     def health() -> dict[str, str]:
-        return {"status": "ok"}
+        return {"status": "ok", "revision": settings.revision}
 
     return app

@@ -33,7 +33,7 @@ Any camera, UI or project logic.
 - [x] Branch created off fresh `origin/main`
 - [x] Tooling files (requirements, pyproject) in place
 - [x] Health: status ok
-- [ ] Health: revision from env
+- [x] Health: revision from env
 - [ ] Health: revision default
 - [ ] Settings: data dir env and default
 - [ ] CI workflow added and green on the PR
