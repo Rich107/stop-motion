@@ -140,3 +140,26 @@ def test_when_ffmpeg_is_missing_stitching_raises_a_stitch_error(
 
     with pytest.raises(StitchError, match="ffmpeg not found"):
         stitch(frames, tmp_path / "film.mp4", fps=10, width=320, height=180, hold_last=0)
+
+
+@needs_ffmpeg
+def test_when_the_held_frames_come_to_a_half_the_progress_total_matches_what_ffmpeg_makes(
+    tmp_path: Path,
+):
+    frames = write_frames([np.full((180, 320, 3), 40 * i, np.uint8) for i in range(5)], tmp_path)
+    output = tmp_path / "film.mp4"
+    calls = []
+
+    # 0.25 s at 10 fps is 2.5 held frames, which ffmpeg rounds up to 3
+    stitch(
+        frames,
+        output,
+        fps=10,
+        width=320,
+        height=180,
+        hold_last=0.25,
+        progress=lambda done, total, stage: calls.append((done, total, stage)),
+    )
+
+    assert int(probe(output)["nb_read_frames"]) == 8
+    assert calls[-1] == (8, 8, "stitch")
