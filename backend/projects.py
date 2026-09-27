@@ -4,6 +4,7 @@ import json
 import os
 import secrets
 import tempfile
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -37,14 +38,13 @@ def _write_atomic(path: Path, data: bytes) -> None:
 class ProjectStore:
     """Creates, reads and changes projects under `data_dir`."""
 
-    def __init__(self, data_dir: Path):
+    def __init__(self, data_dir: Path, clock: Callable[[], datetime] = lambda: datetime.now(UTC)):
         self.data_dir = data_dir
         self.projects_dir = data_dir / "projects"
+        self.clock = clock
 
     def create(self, name: str) -> Project:
-        project = Project(
-            id=secrets.token_hex(4), name=name, created_at=datetime.now(UTC).isoformat()
-        )
+        project = Project(id=secrets.token_hex(4), name=name, created_at=self.clock().isoformat())
         (self._dir(project.id) / "frames").mkdir(parents=True)
         self._save(project)
         return project
@@ -52,7 +52,8 @@ class ProjectStore:
     def list(self) -> list[Project]:
         if not self.projects_dir.is_dir():
             return []
-        return [self._load(d.name) for d in self.projects_dir.iterdir() if d.is_dir()]
+        projects = [self._load(d.name) for d in self.projects_dir.iterdir() if d.is_dir()]
+        return sorted(projects, key=lambda p: p.created_at, reverse=True)
 
     def _dir(self, project_id: str) -> Path:
         return self.projects_dir / project_id

@@ -38,7 +38,7 @@ $STOPMOTION_DATA/
 ## Progress
 
 - [x] Branch created off fresh `origin/main`
-- [ ] Create + list
+- [x] Create + list
 - [ ] Default names
 - [ ] Add frame
 - [ ] Thumbnail + last_capture
