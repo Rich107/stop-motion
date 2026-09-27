@@ -2,12 +2,15 @@
 
 import json
 import os
+import re
 import secrets
 import tempfile
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+
+DEFAULT_NAME = re.compile(r"Film (\d+)")
 
 
 @dataclass
@@ -43,7 +46,9 @@ class ProjectStore:
         self.projects_dir = data_dir / "projects"
         self.clock = clock
 
-    def create(self, name: str) -> Project:
+    def create(self, name: str | None = None) -> Project:
+        if name is None:
+            name = self._next_default_name()
         project = Project(id=secrets.token_hex(4), name=name, created_at=self.clock().isoformat())
         (self._dir(project.id) / "frames").mkdir(parents=True)
         self._save(project)
@@ -54,6 +59,11 @@ class ProjectStore:
             return []
         projects = [self._load(d.name) for d in self.projects_dir.iterdir() if d.is_dir()]
         return sorted(projects, key=lambda p: p.created_at, reverse=True)
+
+    def _next_default_name(self) -> str:
+        # One more than the highest rather than count + 1, which can repeat a name after a removal
+        numbers = [int(m[1]) for p in self.list() if (m := DEFAULT_NAME.fullmatch(p.name))]
+        return f"Film {max(numbers, default=0) + 1}"
 
     def _dir(self, project_id: str) -> Path:
         return self.projects_dir / project_id
