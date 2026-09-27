@@ -1,6 +1,8 @@
 """Stitch a list of images into a stop-motion video using ffmpeg."""
 
 import re
+import subprocess
+import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -9,6 +11,10 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 
 class NoImagesError(ValueError):
     """The folder has no photos in it."""
+
+
+class StitchError(RuntimeError):
+    """ffmpeg failed; the message ends with what it printed."""
 
 
 def natural_key(path: Path) -> list[int | str]:
@@ -74,3 +80,28 @@ def build_command(
         "+faststart",
         str(output),
     ]
+
+
+def stitch(
+    frames: Sequence[Path],
+    output: Path,
+    fps: float,
+    width: int,
+    height: int,
+    hold_last: float,
+) -> None:
+    """Turn `frames` into an MP4 at `output`, one frame per photo, holding the last one."""
+    if not frames:
+        raise NoImagesError("No frames to stitch")
+    with tempfile.TemporaryDirectory() as tmp:
+        list_file = Path(tmp) / "frames.txt"
+        list_file.write_text(concat_list(frames))
+        cmd = build_command(list_file, output, fps, width, height, hold_last)
+        with (
+            tempfile.TemporaryFile("w+") as errors,
+            subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=errors, text=True) as proc,
+        ):
+            proc.stdout.read()
+            if proc.wait() != 0:
+                errors.seek(0)
+                raise StitchError(f"ffmpeg failed making {output}:\n{errors.read()[-2000:]}")

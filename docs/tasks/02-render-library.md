@@ -52,6 +52,6 @@ HTTP endpoints, background jobs.
 - [x] Failure fallback
 - [x] Common crop
 - [x] Progress callback
-- [ ] Stitch integration test
+- [x] Stitch integration test
 - [ ] CLI wrappers + smoke tests
 - [ ] PR opened
