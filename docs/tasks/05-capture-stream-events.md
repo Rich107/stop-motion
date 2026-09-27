@@ -27,6 +27,14 @@
   crash mid-create or mid-remove). Do it once, from the lifespan hook, not per store: a sweep in the
   store's `__init__` could delete a folder another store instance is still building.
 
+### Carried over from task 04 review
+
+- One shared preview producer: a single background task calls `camera.preview_jpeg()` at ~15 fps and
+  hands the latest JPEG to every `/stream` client. Clients must not each call the camera: every call
+  consumes a camera frame (full-res mode tops out at ~14 fps), so three tablets would get ~4-5 fps each
+  and each still would queue behind their previews. The producer runs only while at least one client is
+  connected, and slow clients skip frames instead of buffering.
+
 ## Behaviours to test
 
 - When a frame is captured it is stored and a `frame-added` event is published.
@@ -39,6 +47,8 @@
 - When two captures for the same project run concurrently, both frames are saved with distinct numbers.
 - When two projects are created concurrently without a name, they get different "Film N" names.
 - When the app starts with leftover `.creating-`/`.removing-` folders, they are removed.
+- When several clients stream at once, the camera is read once per frame, not once per client.
+- When the last stream client disconnects, the preview producer stops reading the camera.
 
 ## Progress
 
@@ -53,4 +63,5 @@
 - [ ] Active project
 - [ ] Store locking (task 03 review)
 - [ ] Startup cleanup of `.creating-`/`.removing-` folders (task 03 review)
+- [ ] Shared preview producer (task 04 review)
 - [ ] PR opened
