@@ -1,5 +1,6 @@
 """Stitch a list of images into a stop-motion video using ffmpeg."""
 
+import math
 import re
 import subprocess
 import tempfile
@@ -103,7 +104,8 @@ def stitch(
     """Turn `frames` into an MP4 at `output`, one frame per photo, holding the last one."""
     if not frames:
         raise NoImagesError("No frames to stitch")
-    total = len(frames) + round(hold_last * fps)
+    # tpad rounds half a frame up, where round() would go to the even number
+    total = len(frames) + math.floor(hold_last * fps + 0.5)
     with tempfile.TemporaryDirectory() as tmp:
         list_file = Path(tmp) / "frames.txt"
         list_file.write_text(concat_list(frames))
