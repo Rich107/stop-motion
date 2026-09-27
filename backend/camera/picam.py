@@ -1,6 +1,23 @@
 """The Pi's Camera Module 3, through picamera2."""
 
+from collections.abc import Mapping
+from typing import Any
+
 from backend.camera.fake import Size
+
+# What auto exposure, auto white balance and autofocus settled on, read back from the metadata
+_LOCKED = ("ExposureTime", "AnalogueGain", "ColourGains")
+
+
+def fixed_controls(metadata: Mapping[str, Any], manual_af: Any) -> dict[str, Any]:
+    """Controls that hold the camera at the exposure, white balance and focus in `metadata`.
+
+    `manual_af` is libcamera's `controls.AfModeEnum.Manual`, passed in so this runs off the Pi.
+    """
+    controls: dict[str, Any] = {"AeEnable": False, "AwbEnable": False}
+    controls |= {k: metadata[k] for k in _LOCKED if k in metadata}
+    controls |= {"AfMode": manual_af, "LensPosition": metadata["LensPosition"]}
+    return controls
 
 
 class PiCamera:
