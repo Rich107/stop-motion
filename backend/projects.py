@@ -140,6 +140,11 @@ class ProjectStore:
             thumb.unlink(missing_ok=True)
         return project
 
+    def frame_path(self, project_id: str, index: int) -> Path:
+        """File of the project's frame at `index`, counting from 0."""
+        project = self.get(project_id)
+        return self._dir(project_id) / "frames" / project.frames[index]
+
     def _next_default_name(self) -> str:
         # One more than the highest rather than count + 1, which can repeat a name after a removal
         numbers = [int(m[1]) for p in self.list() if (m := DEFAULT_NAME.fullmatch(p.name))]
