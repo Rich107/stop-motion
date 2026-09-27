@@ -34,7 +34,7 @@ Any camera, UI or project logic.
 - [x] Tooling files (requirements, pyproject) in place
 - [x] Health: status ok
 - [x] Health: revision from env
-- [ ] Health: revision default
+- [x] Health: revision default
 - [ ] Settings: data dir env and default
 - [ ] CI workflow added and green on the PR
 - [ ] README

@@ -16,4 +16,6 @@ class Settings:
 
     @classmethod
     def from_env(cls, revision_file: Path = DEFAULT_REVISION_FILE) -> "Settings":
-        return cls(data_dir=Path("./data"), camera="fake", revision=os.environ["REVISION"])
+        return cls(
+            data_dir=Path("./data"), camera="fake", revision=os.environ.get("REVISION", "dev")
+        )
