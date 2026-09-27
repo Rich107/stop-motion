@@ -237,7 +237,7 @@ def test_when_a_missing_project_is_removed_it_raises_project_not_found(tmp_path:
     ],
     ids=["get", "rename", "remove", "add_frame", "undo_last"],
 )
-def test_when_an_id_contains_dots_or_a_slash_it_is_rejected(tmp_path: Path, bad_id, operation):
+def test_when_an_id_is_dots_a_slash_or_empty_it_is_rejected(tmp_path: Path, bad_id, operation):
     store = ProjectStore(tmp_path / "data")
 
     with pytest.raises(InvalidProjectIdError):
