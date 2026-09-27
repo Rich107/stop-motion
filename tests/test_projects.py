@@ -1,4 +1,6 @@
 import json
+import os
+import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -62,6 +64,19 @@ def test_when_a_frame_is_added_the_thumbnail_is_a_480_wide_copy_of_it(tmp_path: 
     thumb = cv2.imread(str(tmp_path / "projects" / project.id / "thumb.jpg"))
     assert thumb.shape == (270, 480, 3)
     assert abs(thumb.mean() - 200) < 2
+
+
+def test_when_a_frame_is_added_last_capture_is_touched(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+    last_capture = tmp_path / "last_capture"
+    last_capture.touch()
+    an_hour_ago = time.time() - 3600
+    os.utime(last_capture, (an_hour_ago, an_hour_ago))
+
+    store.add_frame(project.id, jpeg())
+
+    assert last_capture.stat().st_mtime > time.time() - 60
 
 
 def ticking_clock():
