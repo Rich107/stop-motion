@@ -22,7 +22,8 @@ class FakeCamera:
             self._open = True
 
     def stop(self) -> None:
-        raise NotImplementedError
+        with self._lock:
+            self._open = False
 
     def preview_jpeg(self) -> bytes:
         raise NotImplementedError
