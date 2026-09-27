@@ -41,7 +41,7 @@ $STOPMOTION_DATA/
 - [x] Create + list
 - [x] Default names
 - [x] Add frame
-- [ ] Thumbnail + last_capture
+- [x] Thumbnail + last_capture
 - [ ] Undo
 - [ ] Rename + remove + persistence
 - [ ] Path safety

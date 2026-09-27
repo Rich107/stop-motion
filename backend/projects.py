@@ -93,6 +93,8 @@ class ProjectStore:
         _write_atomic(self._dir(project_id) / "thumb.jpg", thumb)
         project.frames.append(name)
         self._save(project)
+        # The deploy guard reads this file's mtime so it never restarts the app mid-shoot
+        (self.data_dir / "last_capture").touch()
         return project
 
     def _next_default_name(self) -> str:
