@@ -7,9 +7,10 @@ import secrets
 import shutil
 import tempfile
 from collections.abc import Callable
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
@@ -40,6 +41,8 @@ class Project:
     fps: int = 10
     stabilise: bool = True
     frames: list[str] = field(default_factory=list)
+    # Fields a newer release wrote, kept so a rollback can read its files and not lose them on save
+    unknown_fields: dict[str, Any] = field(default_factory=dict, repr=False)
 
 
 def _write_atomic(path: Path, data: bytes) -> None:
@@ -203,12 +206,19 @@ class ProjectStore:
             text = (self._dir(project_id) / "project.json").read_text()
         except FileNotFoundError:
             raise ProjectNotFoundError(f"No project {project_id!r}") from None
-        return Project(**json.loads(text))
+        data = json.loads(text)
+        known = {f.name for f in fields(Project)} - {"unknown_fields"}
+        return Project(
+            **{k: v for k, v in data.items() if k in known},
+            unknown_fields={k: v for k, v in data.items() if k not in known},
+        )
 
     def _save(self, project: Project) -> None:
         self._write_json(self._dir(project.id), project)
 
     @staticmethod
     def _write_json(project_dir: Path, project: Project) -> None:
-        text = json.dumps(asdict(project), indent=2) + "\n"
+        data = asdict(project)
+        data = {**data.pop("unknown_fields"), **data}
+        text = json.dumps(data, indent=2) + "\n"
         _write_atomic(project_dir / "project.json", text.encode())
