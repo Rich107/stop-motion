@@ -55,6 +55,16 @@ def _write_atomic(path: Path, data: bytes) -> None:
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise
+    _fsync_dir(path.parent)
+
+
+def _fsync_dir(path: Path) -> None:
+    # A rename only survives a power cut once the folder holding it is on disk too
+    fd = os.open(path, os.O_RDONLY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
 
 
 def _thumbnail(jpeg: bytes) -> bytes:
@@ -91,6 +101,7 @@ class ProjectStore:
         (building / "frames").mkdir(parents=True)
         self._write_json(building, project)
         os.replace(building, self._dir(project.id))
+        _fsync_dir(self.projects_dir)
         return project
 
     def list(self) -> list[Project]:
@@ -121,6 +132,7 @@ class ProjectStore:
         # in the list (list() skips hidden folders, as their names aren't ids)
         doomed = self.projects_dir / f".removing-{project_id}"
         os.replace(project_dir, doomed)
+        _fsync_dir(self.projects_dir)
         shutil.rmtree(doomed)
 
     def add_frame(self, project_id: str, jpeg: bytes) -> Project:
