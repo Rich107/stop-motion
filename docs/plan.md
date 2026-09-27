@@ -73,15 +73,14 @@ One task at a time, in order. For each task a subagent:
 1. Branches off fresh `origin/main` (`git fetch origin`, then branch from `origin/main`).
 2. Works in strict TDD as described under Conventions, updating the task's `## Progress` checklist.
 3. Is done when all tests pass locally and in CI. Then it opens the PR.
-4. Then separate review subagents run, each fixing what it finds:
+4. Then separate review subagents run locally in the Claude Code session (no review runs in GitHub
+   Actions), each fixing what it finds and pushing to the PR branch:
    1. Every test follows Arrange / Act / Assert.
    2. Every test name uses the "when" convention.
    3. No over-mocked tests.
    4. The PR description matches the actual changes.
-   5. Code review: the `Claude PR review` GitHub Action (`.github/workflows/claude-review.yml`) posts
-      markdown findings on the PR. The subagent waits for it, verifies each finding, and fixes the
-      real ones. If the Action is skipped (no `ANTHROPIC_API_KEY`), run `/code-review` locally and post
-      its findings as a PR comment instead.
+   5. Code review: runs `/code-review` locally against the PR, posts the findings as a markdown PR
+      comment with `gh pr comment`, then fixes the confirmed ones.
 5. **Auto-merge**: once CI is green and all review subagents are done, squash-merge the PR, delete the
    branch, and start the next task. Stop and report instead of merging if CI stays red, a review finding
    needs a decision from the owner, or the task needs something only the owner can do.
