@@ -32,7 +32,7 @@ Any camera, UI or project logic.
 
 - [x] Branch created off fresh `origin/main`
 - [x] Tooling files (requirements, pyproject) in place
-- [ ] Health: status ok
+- [x] Health: status ok
 - [ ] Health: revision from env
 - [ ] Health: revision default
 - [ ] Settings: data dir env and default
