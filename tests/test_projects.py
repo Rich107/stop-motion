@@ -52,6 +52,18 @@ def test_when_frames_are_added_they_are_saved_with_the_next_number_and_listed_in
     assert [(project_dir / "frames" / name).read_bytes() for name in saved["frames"]] == photos
 
 
+def test_when_a_frame_is_added_the_thumbnail_is_a_480_wide_copy_of_it(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+    store.add_frame(project.id, jpeg(1280, 720, brightness=50))
+
+    store.add_frame(project.id, jpeg(1280, 720, brightness=200))
+
+    thumb = cv2.imread(str(tmp_path / "projects" / project.id / "thumb.jpg"))
+    assert thumb.shape == (270, 480, 3)
+    assert abs(thumb.mean() - 200) < 2
+
+
 def ticking_clock():
     """A clock that moves on a minute every time it is read, so creation order is certain."""
     times = (datetime(2026, 9, 27, 9, 0, tzinfo=UTC) + timedelta(minutes=i) for i in range(1000))
