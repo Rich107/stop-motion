@@ -37,3 +37,11 @@ def test_when_camera_env_is_pi_settings_use_pi_camera(monkeypatch):
     settings = Settings.from_env()
 
     assert settings.camera == "pi"
+
+
+def test_when_camera_env_is_unset_camera_defaults_to_fake(monkeypatch):
+    monkeypatch.delenv("STOPMOTION_CAMERA", raising=False)
+
+    settings = Settings.from_env()
+
+    assert settings.camera == "fake"
