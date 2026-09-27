@@ -48,8 +48,8 @@ def test_when_a_fake_camera_previews_it_returns_a_jpeg_of_the_preview_size():
 def test_when_a_fake_camera_previews_twice_the_frames_differ():
     camera = FakeCamera(still_size=(320, 180), preview_size=(160, 90))
     camera.start()
-
     first = camera.preview_jpeg()
+
     second = camera.preview_jpeg()
 
     assert not np.array_equal(decode(first), decode(second))
