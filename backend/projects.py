@@ -63,6 +63,10 @@ def _thumbnail(jpeg: bytes) -> bytes:
     return data.tobytes()
 
 
+class ProjectNotFoundError(LookupError):
+    """No project has this id."""
+
+
 class ProjectStore:
     """Creates, reads and changes projects under `data_dir`."""
 
@@ -166,7 +170,11 @@ class ProjectStore:
         return self.projects_dir / project_id
 
     def _load(self, project_id: str) -> Project:
-        return Project(**json.loads((self._dir(project_id) / "project.json").read_text()))
+        try:
+            text = (self._dir(project_id) / "project.json").read_text()
+        except FileNotFoundError:
+            raise ProjectNotFoundError(f"No project {project_id!r}") from None
+        return Project(**json.loads(text))
 
     def _save(self, project: Project) -> None:
         text = json.dumps(asdict(project), indent=2) + "\n"
