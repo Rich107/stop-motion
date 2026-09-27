@@ -40,4 +40,3 @@ def test_when_settings_are_unlocked_on_an_autofocus_camera_auto_exposure_wb_and_
     controls = auto_controls(continuous_af=CONTINUOUS)
 
     assert controls == {"AeEnable": True, "AwbEnable": True, "AfMode": CONTINUOUS}
-

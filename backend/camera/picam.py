@@ -22,6 +22,14 @@ def fixed_controls(metadata: Mapping[str, Any], manual_af: Any) -> dict[str, Any
     return controls
 
 
+def auto_controls(continuous_af: Any) -> dict[str, Any]:
+    """Controls that hand exposure, white balance and focus back to the camera.
+
+    `continuous_af` is libcamera's `controls.AfModeEnum.Continuous`.
+    """
+    return {"AeEnable": True, "AwbEnable": True, "AfMode": continuous_af}
+
+
 class PiCamera:
     def __init__(self, still_size: Size = (4608, 2592), preview_size: Size = (1280, 720)) -> None:
         self.still_size = still_size
