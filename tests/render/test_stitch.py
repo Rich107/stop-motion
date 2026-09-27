@@ -65,7 +65,9 @@ def test_when_a_frame_path_has_a_quote_the_concat_list_escapes_it(tmp_path: Path
 
 
 @needs_ffmpeg
-def test_when_ffmpeg_is_available_stitching_makes_a_playable_mp4_with_every_frame(tmp_path: Path):
+def test_when_frames_are_stitched_the_h264_mp4_has_every_frame_then_the_held_last_one(
+    tmp_path: Path,
+):
     frames = write_frames(
         [np.full((180, 320, 3), 40 * i, np.uint8) for i in range(5)], tmp_path / "Sam's film"
     )

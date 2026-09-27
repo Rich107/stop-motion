@@ -24,7 +24,9 @@ def small_folder(directory: Path) -> Path:
 
 
 @needs_ffmpeg
-def test_when_stopmotion_runs_on_a_small_folder_it_produces_a_video(tmp_path: Path):
+def test_when_stopmotion_runs_on_a_folder_the_video_has_the_requested_size_and_every_frame(
+    tmp_path: Path,
+):
     frames = small_folder(tmp_path / "frames")
     output = tmp_path / "film.mp4"
 
@@ -50,7 +52,9 @@ def test_when_stopmotion_runs_on_a_small_folder_it_produces_a_video(tmp_path: Pa
 
 
 @needs_ffmpeg
-def test_when_stopmotion_stabilised_runs_in_chain_mode_it_produces_a_video(tmp_path: Path):
+def test_when_stopmotion_stabilised_runs_in_chain_mode_it_writes_the_video_and_keeps_aligned_frames(
+    tmp_path: Path,
+):
     frames = small_folder(tmp_path / "frames")
     output = tmp_path / "film.mp4"
 
