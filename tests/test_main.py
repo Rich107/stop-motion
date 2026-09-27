@@ -78,3 +78,20 @@ def test_when_the_camera_is_not_open_health_returns_503_saying_so(tmp_path: Path
         "reason": "camera not open",
         "revision": "abc123",
     }
+
+
+class UnpluggedCamera(FakeCamera):
+    def start(self) -> None:
+        raise RuntimeError("Camera __init__ sequence did not complete")
+
+
+def test_when_the_camera_fails_to_start_the_app_still_serves_health_as_503(tmp_path: Path):
+    app = create_app(
+        Settings(data_dir=tmp_path, camera="fake", revision="dev"), camera=UnpluggedCamera()
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/health")
+
+    assert response.status_code == 503
+    assert response.json()["reason"] == "camera not open"
