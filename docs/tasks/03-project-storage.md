@@ -37,12 +37,12 @@ $STOPMOTION_DATA/
 
 ## Progress
 
-- [ ] Branch created off fresh `origin/main`
-- [ ] Create + list
-- [ ] Default names
-- [ ] Add frame
-- [ ] Thumbnail + last_capture
-- [ ] Undo
-- [ ] Rename + remove + persistence
-- [ ] Path safety
-- [ ] PR opened
+- [x] Branch created off fresh `origin/main`
+- [x] Create + list
+- [x] Default names
+- [x] Add frame
+- [x] Thumbnail + last_capture
+- [x] Undo
+- [x] Rename + remove + persistence
+- [x] Path safety
+- [x] PR opened

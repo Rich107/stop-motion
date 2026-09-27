@@ -1,0 +1,224 @@
+"""Projects on disk: one folder per film under $STOPMOTION_DATA/projects, with a project.json."""
+
+import json
+import os
+import re
+import secrets
+import shutil
+import tempfile
+from collections.abc import Callable
+from dataclasses import asdict, dataclass, field, fields
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
+
+import cv2
+import numpy as np
+
+DEFAULT_NAME = re.compile(r"Film (\d+)")
+THUMB_WIDTH = 480
+# An allowlist rather than looking for "..": nothing that can name another folder gets through
+VALID_ID = re.compile(r"[A-Za-z0-9_-]{1,64}")
+
+
+class InvalidProjectIdError(ValueError):
+    """The id could point outside the projects folder, so it's never used as a path."""
+
+
+class ProjectNotFoundError(LookupError):
+    """No project has this id."""
+
+
+class InvalidFrameError(ValueError):
+    """The bytes given as a frame aren't an image OpenCV can read."""
+
+
+@dataclass
+class Project:
+    id: str
+    name: str
+    created_at: str  # ISO 8601, UTC
+    fps: int = 10
+    stabilise: bool = True
+    frames: list[str] = field(default_factory=list)
+    # Fields a newer release wrote, kept so a rollback can read its files and not lose them on save
+    unknown_fields: dict[str, Any] = field(default_factory=dict, repr=False)
+
+
+def _write_atomic(path: Path, data: bytes) -> None:
+    # Write a temp file next to the target, then swap it in, so a power cut leaves either the
+    # old file or the new one, never half of one
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+    _fsync_dir(path.parent)
+
+
+def _fsync_dir(path: Path) -> None:
+    # A rename only survives a power cut once the folder holding it is on disk too
+    fd = os.open(path, os.O_RDONLY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def _thumbnail(jpeg: bytes) -> bytes:
+    """A small copy of a photo for the projects page."""
+    img = cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
+    if img is None:
+        raise InvalidFrameError("The frame is not an image")
+    h, w = img.shape[:2]
+    if w > THUMB_WIDTH:
+        img = cv2.resize(
+            img, (THUMB_WIDTH, round(h * THUMB_WIDTH / w)), interpolation=cv2.INTER_AREA
+        )
+    ok, data = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 80])
+    if not ok:
+        raise OSError("Could not encode the thumbnail")
+    return data.tobytes()
+
+
+class ProjectStore:
+    """Creates, reads and changes projects under `data_dir`."""
+
+    def __init__(self, data_dir: Path, clock: Callable[[], datetime] = lambda: datetime.now(UTC)):
+        self.data_dir = data_dir
+        self.projects_dir = data_dir / "projects"
+        self.clock = clock
+
+    def create(self, name: str | None = None) -> Project:
+        if name is None:
+            name = self._next_default_name()
+        project = Project(id=secrets.token_hex(4), name=name, created_at=self.clock().isoformat())
+        # Build it in a hidden folder and move it into place in one step, so a power cut can't
+        # leave a folder without a project.json in the list
+        building = self.projects_dir / f".creating-{project.id}"
+        (building / "frames").mkdir(parents=True)
+        self._write_json(building, project)
+        os.replace(building, self._dir(project.id))
+        _fsync_dir(self.projects_dir)
+        return project
+
+    def list(self) -> list[Project]:
+        if not self.projects_dir.is_dir():
+            return []
+        projects = [
+            self._load(d.name)
+            for d in self.projects_dir.iterdir()
+            # A folder without a project.json isn't a project, and shouldn't break the whole list
+            if VALID_ID.fullmatch(d.name) and (d / "project.json").is_file()
+        ]
+        return sorted(projects, key=lambda p: p.created_at, reverse=True)
+
+    def get(self, project_id: str) -> Project:
+        return self._load(project_id)
+
+    def rename(self, project_id: str, name: str) -> Project:
+        project = self.get(project_id)
+        project.name = name
+        self._save(project)
+        return project
+
+    def remove(self, project_id: str) -> None:
+        """Delete the project and everything in its folder."""
+        self.get(project_id)
+        project_dir = self._dir(project_id)
+        # Move it aside in one step first, so a power cut mid-delete can't leave half a project
+        # in the list (list() skips hidden folders, as their names aren't ids)
+        doomed = self.projects_dir / f".removing-{project_id}"
+        os.replace(project_dir, doomed)
+        _fsync_dir(self.projects_dir)
+        shutil.rmtree(doomed)
+
+    def add_frame(self, project_id: str, jpeg: bytes) -> Project:
+        """Save `jpeg` as the project's next frame and record it."""
+        project = self.get(project_id)
+        # Number on from the last frame, not the count, which clashes if one goes from the middle
+        number = int(Path(project.frames[-1]).stem) + 1 if project.frames else 1
+        name = f"{number:05d}.jpg"
+        thumb = _thumbnail(jpeg)  # before anything is written, as it also checks the photo
+        # Photo first, then the list: a power cut in between only leaves an unlisted file
+        _write_atomic(self._dir(project_id) / "frames" / name, jpeg)
+        _write_atomic(self._dir(project_id) / "thumb.jpg", thumb)
+        project.frames.append(name)
+        self._save(project)
+        # The deploy guard reads this file's mtime so it never restarts the app mid-shoot
+        (self.data_dir / "last_capture").touch()
+        return project
+
+    def undo_last(self, project_id: str) -> Project:
+        """Forget the project's last frame and delete its photo."""
+        project = self.get(project_id)
+        if not project.frames:
+            return project
+        name = project.frames.pop()
+        # List first, then the photo: a power cut in between only leaves an unlisted file
+        self._save(project)
+        (self._dir(project_id) / "frames" / name).unlink(missing_ok=True)
+        thumb = self._dir(project_id) / "thumb.jpg"
+        if project.frames:
+            latest = self._dir(project_id) / "frames" / project.frames[-1]
+            try:
+                _write_atomic(thumb, _thumbnail(latest.read_bytes()))
+            except (OSError, InvalidFrameError):
+                # The undo has already happened: a missing thumbnail beats one of the deleted
+                # frame, or an undo button that fails every time
+                thumb.unlink(missing_ok=True)
+        else:
+            thumb.unlink(missing_ok=True)
+        return project
+
+    def frame_path(self, project_id: str, index: int) -> Path:
+        """File of the project's frame at `index`, counting from 0."""
+        project = self.get(project_id)
+        # Python would count a negative index from the end; a frame number from a URL shouldn't
+        if not 0 <= index < len(project.frames):
+            raise IndexError(f"Frame {index} is not in project {project_id}")
+        return self._dir(project_id) / "frames" / project.frames[index]
+
+    def last_frame_path(self, project_id: str) -> Path | None:
+        """File of the newest frame (the onion-skin ghost), or None before the first photo."""
+        project = self.get(project_id)
+        if not project.frames:
+            return None
+        return self._dir(project_id) / "frames" / project.frames[-1]
+
+    def _next_default_name(self) -> str:
+        # One more than the highest rather than count + 1, which can repeat a name after a removal
+        numbers = [int(m[1]) for p in self.list() if (m := DEFAULT_NAME.fullmatch(p.name))]
+        return f"Film {max(numbers, default=0) + 1}"
+
+    def _dir(self, project_id: str) -> Path:
+        if not VALID_ID.fullmatch(project_id):
+            raise InvalidProjectIdError(f"Not a valid project id: {project_id!r}")
+        return self.projects_dir / project_id
+
+    def _load(self, project_id: str) -> Project:
+        try:
+            text = (self._dir(project_id) / "project.json").read_text()
+        except FileNotFoundError:
+            raise ProjectNotFoundError(f"No project {project_id!r}") from None
+        data = json.loads(text)
+        known = {f.name for f in fields(Project)} - {"unknown_fields"}
+        return Project(
+            **{k: v for k, v in data.items() if k in known},
+            unknown_fields={k: v for k, v in data.items() if k not in known},
+        )
+
+    def _save(self, project: Project) -> None:
+        self._write_json(self._dir(project.id), project)
+
+    @staticmethod
+    def _write_json(project_dir: Path, project: Project) -> None:
+        data = asdict(project)
+        data = {**data.pop("unknown_fields"), **data}
+        text = json.dumps(data, indent=2) + "\n"
+        _write_atomic(project_dir / "project.json", text.encode())

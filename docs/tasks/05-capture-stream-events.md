@@ -17,6 +17,16 @@
 - `GET /projects/{id}/frames/{n}.jpg` and `GET /projects/{id}/frames/last.jpg` (404 when empty).
 - An "active project" (last one opened) kept in app state for the button to target.
 
+### Carried over from task 03 review
+
+- Locking in `ProjectStore`: a `threading.Lock` per project id (or one store-level lock) around
+  `add_frame`, `undo_last`, `rename` and `remove`, plus one around `create()`. The GPIO thread and HTTP
+  requests can hit the same project at once, and without a lock two captures pick the same frame number
+  (one photo lost) or two `create()` calls pick the same "Film N".
+- On app startup, remove leftover `.creating-*` / `.removing-*` folders under `projects/` (left by a
+  crash mid-create or mid-remove). Do it once, from the lifespan hook, not per store: a sweep in the
+  store's `__init__` could delete a folder another store instance is still building.
+
 ## Behaviours to test
 
 - When a frame is captured it is stored and a `frame-added` event is published.
@@ -26,6 +36,9 @@
 - When `/stream` is requested it returns multipart JPEG parts.
 - When a client subscribes to `/events` and a frame is captured, it receives the event.
 - When `last.jpg` is requested for an empty project it returns 404.
+- When two captures for the same project run concurrently, both frames are saved with distinct numbers.
+- When two projects are created concurrently without a name, they get different "Film N" names.
+- When the app starts with leftover `.creating-`/`.removing-` folders, they are removed.
 
 ## Progress
 
@@ -38,4 +51,6 @@
 - [ ] MJPEG stream
 - [ ] SSE endpoint
 - [ ] Active project
+- [ ] Store locking (task 03 review)
+- [ ] Startup cleanup of `.creating-`/`.removing-` folders (task 03 review)
 - [ ] PR opened
