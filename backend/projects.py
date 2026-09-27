@@ -104,6 +104,9 @@ class ProjectStore:
         # List first, then the photo: a power cut in between only leaves an unlisted file
         self._save(project)
         (self._dir(project_id) / "frames" / name).unlink(missing_ok=True)
+        if project.frames:
+            latest = self._dir(project_id) / "frames" / project.frames[-1]
+            _write_atomic(self._dir(project_id) / "thumb.jpg", _thumbnail(latest.read_bytes()))
         return project
 
     def _next_default_name(self) -> str:
