@@ -50,9 +50,9 @@ def test_when_frames_are_added_they_are_saved_with_the_next_number_and_listed_in
     store = ProjectStore(tmp_path)
     project = store.create()
     photos = [jpeg(brightness=50), jpeg(brightness=200)]
+    store.add_frame(project.id, photos[0])
 
-    for photo in photos:
-        store.add_frame(project.id, photo)
+    store.add_frame(project.id, photos[1])
 
     project_dir = tmp_path / "projects" / project.id
     saved = json.loads((project_dir / "project.json").read_text())
