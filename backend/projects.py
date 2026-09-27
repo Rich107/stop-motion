@@ -148,6 +148,11 @@ class ProjectStore:
             raise IndexError(f"Frame {index} is not in project {project_id}")
         return self._dir(project_id) / "frames" / project.frames[index]
 
+    def last_frame_path(self, project_id: str) -> Path | None:
+        """File of the newest frame (the onion-skin ghost)."""
+        project = self.get(project_id)
+        return self._dir(project_id) / "frames" / project.frames[-1]
+
     def _next_default_name(self) -> str:
         # One more than the highest rather than count + 1, which can repeat a name after a removal
         numbers = [int(m[1]) for p in self.list() if (m := DEFAULT_NAME.fullmatch(p.name))]
