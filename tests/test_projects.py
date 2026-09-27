@@ -184,6 +184,21 @@ def test_when_a_project_is_renamed_a_new_store_sees_the_new_name(tmp_path: Path)
     assert ProjectStore(tmp_path).get(project.id).name == "Space rocket"
 
 
+def test_when_project_json_has_unknown_fields_it_loads_and_keeps_them_on_save(tmp_path: Path):
+    # Arrange: a field a newer release added, read back by this one after a rollback
+    store = ProjectStore(tmp_path)
+    project = store.create("Film 1")
+    project_json = tmp_path / "projects" / project.id / "project.json"
+    saved = json.loads(project_json.read_text())
+    project_json.write_text(json.dumps({**saved, "soundtrack": "dino-roar.mp3"}))
+
+    store.rename(project.id, "Space rocket")
+
+    saved = json.loads(project_json.read_text())
+    assert saved["name"] == "Space rocket"
+    assert saved["soundtrack"] == "dino-roar.mp3"
+
+
 def test_when_a_project_is_removed_a_new_store_no_longer_lists_it_and_its_folder_is_gone(
     tmp_path: Path,
 ):
