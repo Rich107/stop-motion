@@ -149,8 +149,10 @@ class ProjectStore:
         return self._dir(project_id) / "frames" / project.frames[index]
 
     def last_frame_path(self, project_id: str) -> Path | None:
-        """File of the newest frame (the onion-skin ghost)."""
+        """File of the newest frame (the onion-skin ghost), or None before the first photo."""
         project = self.get(project_id)
+        if not project.frames:
+            return None
         return self._dir(project_id) / "frames" / project.frames[-1]
 
     def _next_default_name(self) -> str:
