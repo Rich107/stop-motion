@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.render.stitch import NoImagesError, build_command, list_images
+from backend.render.stitch import NoImagesError, build_command, concat_list, list_images
 
 
 def test_when_images_are_named_img2_and_img10_they_sort_naturally(tmp_path: Path):
@@ -48,3 +48,14 @@ def test_when_building_the_ffmpeg_command_fps_size_hold_last_and_output_are_incl
     assert "pad=640:360" in vf
     assert "stop_duration=1.5" in vf
     assert cmd[-1] == str(output)
+
+
+def test_when_a_frame_path_has_a_quote_the_concat_list_escapes_it(tmp_path: Path):
+    frames = [tmp_path / "a.jpg", tmp_path / "Sam's film" / "b.jpg"]
+
+    text = concat_list(frames)
+
+    assert text.splitlines() == [
+        f"file '{tmp_path}/a.jpg'",
+        f"file '{tmp_path}/Sam'\\''s film/b.jpg'",
+    ]
