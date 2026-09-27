@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from backend.config import Settings
-from backend.main import create_app
+from backend.main import app, create_app
 
 
 def test_when_health_is_called_it_returns_200_with_status_ok(tmp_path: Path):
@@ -31,3 +31,11 @@ def test_when_no_revision_env_or_file_is_present_health_reports_dev(monkeypatch,
     response = client.get("/health")
 
     assert response.json()["revision"] == "dev"
+
+
+def test_when_module_app_is_served_health_returns_200():
+    client = TestClient(app)
+
+    response = client.get("/health")
+
+    assert response.status_code == 200
