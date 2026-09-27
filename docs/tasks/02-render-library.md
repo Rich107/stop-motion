@@ -46,7 +46,7 @@ HTTP endpoints, background jobs.
 
 - [x] Branch created off fresh `origin/main`
 - [x] Natural sort + image listing
-- [ ] ffmpeg command builder
+- [x] ffmpeg command builder
 - [ ] Reference-mode alignment
 - [ ] Chain-mode alignment
 - [ ] Failure fallback

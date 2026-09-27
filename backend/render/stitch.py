@@ -1,6 +1,7 @@
 """Stitch a list of images into a stop-motion video using ffmpeg."""
 
 import re
+from collections.abc import Sequence
 from pathlib import Path
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
@@ -22,6 +23,16 @@ def list_images(directory: Path) -> list[Path]:
     if not images:
         raise NoImagesError(f"No images found in {directory}")
     return images
+
+
+def concat_list(frames: Sequence[Path]) -> str:
+    """Contents of an ffmpeg concat-demuxer list file naming each frame."""
+    lines = []
+    for frame in frames:
+        # Inside single quotes, a quote is written as '\''
+        quoted = frame.resolve().as_posix().replace("'", "'\\''")
+        lines.append(f"file '{quoted}'\n")
+    return "".join(lines)
 
 
 def build_command(
