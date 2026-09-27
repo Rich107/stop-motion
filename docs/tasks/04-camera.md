@@ -39,6 +39,6 @@
 - [x] Factory
 - [x] App lifespan
 - [x] Health 503
-- [ ] PiCamera + pure control-building helper
+- [x] PiCamera + pure control-building helper
 - [ ] Manual Pi checks listed in PR
 - [ ] PR opened

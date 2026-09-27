@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import pytest
 
-from backend.camera.base import CameraNotOpenError
+from backend.camera.base import Camera, CameraNotOpenError
 from backend.camera.picam import PiCamera, auto_controls, fixed_controls, lores_to_bgr
 
 # Stand-ins for libcamera's enums, which only exist on the Pi
@@ -80,3 +80,13 @@ def test_when_a_pi_camera_is_not_started_using_it_raises_camera_not_open(use):
 
     with pytest.raises(CameraNotOpenError):
         use(camera)
+
+
+def test_when_an_unstarted_pi_camera_is_stopped_it_stays_closed_without_error():
+    camera = PiCamera()
+
+    camera.stop()
+
+    assert isinstance(camera, Camera)
+    assert not camera.is_open
+    assert not camera.settings_locked
