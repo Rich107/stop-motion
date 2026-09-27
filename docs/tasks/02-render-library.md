@@ -54,4 +54,4 @@ HTTP endpoints, background jobs.
 - [x] Progress callback
 - [x] Stitch integration test
 - [x] CLI wrappers + smoke tests
-- [ ] PR opened
+- [x] PR opened (#4), CI green
