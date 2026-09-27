@@ -163,7 +163,12 @@ class ProjectStore:
         thumb = self._dir(project_id) / "thumb.jpg"
         if project.frames:
             latest = self._dir(project_id) / "frames" / project.frames[-1]
-            _write_atomic(thumb, _thumbnail(latest.read_bytes()))
+            try:
+                _write_atomic(thumb, _thumbnail(latest.read_bytes()))
+            except (OSError, InvalidFrameError):
+                # The undo has already happened: a missing thumbnail beats one of the deleted
+                # frame, or an undo button that fails every time
+                thumb.unlink(missing_ok=True)
         else:
             thumb.unlink(missing_ok=True)
         return project
