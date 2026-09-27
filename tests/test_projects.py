@@ -22,6 +22,16 @@ def test_when_projects_are_listed_the_newest_is_first(tmp_path: Path):
     assert [p.name for p in projects] == ["Third", "Second", "First"]
 
 
+def test_when_no_name_is_given_it_is_named_one_after_the_highest_film_number(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    for name in ["Film 1", "Dinosaurs", "Film 5"]:
+        store.create(name)
+
+    project = store.create()
+
+    assert project.name == "Film 6"
+
+
 def ticking_clock():
     """A clock that moves on a minute every time it is read, so creation order is certain."""
     times = (datetime(2026, 9, 27, 9, 0, tzinfo=UTC) + timedelta(minutes=i) for i in range(1000))
