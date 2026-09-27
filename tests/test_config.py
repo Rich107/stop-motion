@@ -21,3 +21,11 @@ def test_when_data_env_is_set_settings_use_it(monkeypatch, tmp_path: Path):
     settings = Settings.from_env()
 
     assert settings.data_dir == tmp_path / "films"
+
+
+def test_when_data_env_is_unset_data_dir_defaults_to_data(monkeypatch):
+    monkeypatch.delenv("STOPMOTION_DATA", raising=False)
+
+    settings = Settings.from_env()
+
+    assert settings.data_dir == Path("./data")
