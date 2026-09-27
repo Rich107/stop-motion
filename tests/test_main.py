@@ -60,3 +60,19 @@ def test_when_the_app_shuts_down_the_camera_is_stopped(tmp_path: Path):
         pass
 
     assert not camera.is_open
+
+
+def test_when_the_camera_is_not_open_health_returns_503_saying_so(tmp_path: Path):
+    camera = FakeCamera()
+    app = create_app(Settings(data_dir=tmp_path, camera="fake", revision="abc123"), camera=camera)
+
+    with TestClient(app) as client:
+        camera.stop()
+        response = client.get("/health")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "status": "error",
+        "reason": "camera not open",
+        "revision": "abc123",
+    }
