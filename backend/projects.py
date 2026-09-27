@@ -99,7 +99,8 @@ class ProjectStore:
         projects = [
             self._load(d.name)
             for d in self.projects_dir.iterdir()
-            if d.is_dir() and VALID_ID.fullmatch(d.name)
+            # A folder without a project.json isn't a project, and shouldn't break the whole list
+            if VALID_ID.fullmatch(d.name) and (d / "project.json").is_file()
         ]
         return sorted(projects, key=lambda p: p.created_at, reverse=True)
 
