@@ -104,6 +104,17 @@ def test_when_the_last_frame_is_undone_the_thumbnail_shows_the_frame_before_it(t
     assert abs(thumb.mean() - 50) < 2
 
 
+def test_when_undo_is_called_on_an_empty_project_it_leaves_it_empty_without_error(
+    tmp_path: Path,
+):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+
+    store.undo_last(project.id)
+
+    assert store.get(project.id).frames == []
+
+
 def ticking_clock():
     """A clock that moves on a minute every time it is read, so creation order is certain."""
     times = (datetime(2026, 9, 27, 9, 0, tzinfo=UTC) + timedelta(minutes=i) for i in range(1000))
