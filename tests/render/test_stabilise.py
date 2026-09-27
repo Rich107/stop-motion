@@ -41,8 +41,7 @@ def test_when_the_scene_changes_gradually_chain_mode_aligns_frames_that_referenc
     ]
     images = write_frames(frames, tmp_path)
 
-    reference = compute_transforms(images, mode="reference")
-    chain = compute_transforms(images, mode="chain")
+    reference, chain = (compute_transforms(images, mode=mode) for mode in ("reference", "chain"))
 
     assert reference.failed != []
     assert chain.failed == []
