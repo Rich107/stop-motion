@@ -84,6 +84,13 @@ def build_command(
     ]
 
 
+def _start_ffmpeg(cmd: list[str], errors) -> subprocess.Popen:
+    try:
+        return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=errors, text=True)
+    except FileNotFoundError:
+        raise StitchError("ffmpeg not found; install it and make sure it is on PATH") from None
+
+
 def stitch(
     frames: Sequence[Path],
     output: Path,
@@ -103,7 +110,7 @@ def stitch(
         cmd = build_command(list_file, output, fps, width, height, hold_last)
         with (
             tempfile.TemporaryFile("w+") as errors,
-            subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=errors, text=True) as proc,
+            _start_ffmpeg(cmd, errors) as proc,
         ):
             try:
                 # -progress writes key=value lines; frame=N is the number of frames encoded so far
