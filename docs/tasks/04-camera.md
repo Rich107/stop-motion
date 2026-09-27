@@ -35,7 +35,7 @@
 - [x] Camera protocol
 - [x] FakeCamera capture
 - [x] FakeCamera preview
-- [ ] Lock/unlock
+- [x] Lock/unlock
 - [ ] Factory
 - [ ] App lifespan
 - [ ] Health 503

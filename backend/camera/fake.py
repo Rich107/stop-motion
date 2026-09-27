@@ -54,7 +54,8 @@ class FakeCamera:
             self._locked = True
 
     def unlock_settings(self) -> None:
-        raise NotImplementedError
+        with self._lock:
+            self._locked = False
 
     def _draw(self, size: Size) -> np.ndarray:
         with self._lock:
