@@ -97,6 +97,15 @@ class ProjectStore:
         (self.data_dir / "last_capture").touch()
         return project
 
+    def undo_last(self, project_id: str) -> Project:
+        """Forget the project's last frame and delete its photo."""
+        project = self.get(project_id)
+        name = project.frames.pop()
+        # List first, then the photo: a power cut in between only leaves an unlisted file
+        self._save(project)
+        (self._dir(project_id) / "frames" / name).unlink(missing_ok=True)
+        return project
+
     def _next_default_name(self) -> str:
         # One more than the highest rather than count + 1, which can repeat a name after a removal
         numbers = [int(m[1]) for p in self.list() if (m := DEFAULT_NAME.fullmatch(p.name))]
