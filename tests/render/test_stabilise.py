@@ -113,6 +113,15 @@ def test_when_aligned_frames_are_written_they_line_up_and_are_cropped(tmp_path: 
         assert cv2.absdiff(a[:100], aligned[0][:100]).mean() < 5
 
 
+def test_when_a_frame_cant_be_saved_writing_raises_an_os_error(tmp_path: Path):
+    images = write_frames([camera_view(textured_scene(seed=1), (0, 0), 0)], tmp_path / "in")
+    out_dir = tmp_path / "out"
+    (out_dir / "frame_00000.jpg").mkdir(parents=True)  # a folder is in the way
+
+    with pytest.raises(OSError, match="Could not write"):
+        write_aligned(images, [np.eye(3)], None, out_dir)
+
+
 def test_when_progress_is_given_alignment_calls_it_for_every_frame(tmp_path: Path):
     scene = textured_scene(seed=1)
     images = write_frames([camera_view(scene, (i, i), i) for i in range(3)], tmp_path)
