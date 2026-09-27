@@ -78,3 +78,22 @@ def test_when_ffmpeg_is_available_stitching_makes_a_playable_mp4_with_every_fram
     assert (info["width"], info["height"]) == (320, 180)
     assert info["r_frame_rate"] == "10/1"
     assert int(info["nb_read_frames"]) == 5 + 5  # every photo, then half a second of the last
+
+
+@needs_ffmpeg
+def test_when_progress_is_given_stitching_reports_up_to_the_total_frame_count(tmp_path: Path):
+    frames = write_frames([np.full((180, 320, 3), 40 * i, np.uint8) for i in range(5)], tmp_path)
+    calls = []
+
+    stitch(
+        frames,
+        tmp_path / "film.mp4",
+        fps=10,
+        width=320,
+        height=180,
+        hold_last=0.5,
+        progress=lambda done, total, stage: calls.append((done, total, stage)),
+    )
+
+    assert calls[-1] == (10, 10, "stitch")
+    assert all(total == 10 and stage == "stitch" for _, total, stage in calls)
