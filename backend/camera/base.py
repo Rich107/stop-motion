@@ -1,0 +1,54 @@
+"""The camera interface the rest of the app uses."""
+
+from typing import Protocol, runtime_checkable
+
+import cv2
+import numpy as np
+
+Size = tuple[int, int]  # (width, height)
+
+
+class CameraNotOpenError(RuntimeError):
+    """The camera hasn't been started, or has been stopped."""
+
+
+def encode_jpeg(bgr: np.ndarray, quality: int = 90) -> bytes:
+    # Software JPEG: the Pi 5 has no hardware encoder, and OpenCV's libjpeg-turbo is quick
+    ok, data = cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, quality])
+    if not ok:
+        raise OSError("Could not encode the JPEG")
+    return data.tobytes()
+
+
+@runtime_checkable
+class Camera(Protocol):
+    """A camera with a low-res live preview and full-res stills.
+
+    Methods may be called from different threads (HTTP requests, the GPIO button).
+    """
+
+    @property
+    def is_open(self) -> bool: ...
+
+    @property
+    def settings_locked(self) -> bool: ...
+
+    def start(self) -> None: ...
+
+    def stop(self) -> None: ...
+
+    def preview_jpeg(self) -> bytes:
+        """A low-res frame for the MJPEG stream."""
+        ...
+
+    def capture_jpeg(self) -> bytes:
+        """A full-res still; the preview keeps running."""
+        ...
+
+    def lock_settings(self) -> None:
+        """Fix exposure, white balance and focus, so frames of a film match."""
+        ...
+
+    def unlock_settings(self) -> None:
+        """Go back to automatic exposure, white balance and focus."""
+        ...

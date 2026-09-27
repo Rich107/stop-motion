@@ -31,14 +31,14 @@
 
 ## Progress
 
-- [ ] Branch created off fresh `origin/main`
-- [ ] Camera protocol
-- [ ] FakeCamera capture
-- [ ] FakeCamera preview
-- [ ] Lock/unlock
-- [ ] Factory
-- [ ] App lifespan
-- [ ] Health 503
-- [ ] PiCamera + pure control-building helper
-- [ ] Manual Pi checks listed in PR
-- [ ] PR opened
+- [x] Branch created off fresh `origin/main`
+- [x] Camera protocol
+- [x] FakeCamera capture
+- [x] FakeCamera preview
+- [x] Lock/unlock
+- [x] Factory
+- [x] App lifespan
+- [x] Health 503
+- [x] PiCamera + pure control-building helper
+- [x] Manual Pi checks listed in PR
+- [x] PR opened
