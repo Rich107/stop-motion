@@ -37,7 +37,7 @@ $STOPMOTION_DATA/
 
 ## Progress
 
-- [ ] Branch created off fresh `origin/main`
+- [x] Branch created off fresh `origin/main`
 - [ ] Create + list
 - [ ] Default names
 - [ ] Add frame
