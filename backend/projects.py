@@ -100,6 +100,8 @@ class ProjectStore:
     def undo_last(self, project_id: str) -> Project:
         """Forget the project's last frame and delete its photo."""
         project = self.get(project_id)
+        if not project.frames:
+            return project
         name = project.frames.pop()
         # List first, then the photo: a power cut in between only leaves an unlisted file
         self._save(project)
