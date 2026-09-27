@@ -49,9 +49,15 @@ def _write_atomic(path: Path, data: bytes) -> None:
         raise
 
 
+class InvalidFrameError(ValueError):
+    """The bytes given as a frame aren't an image OpenCV can read."""
+
+
 def _thumbnail(jpeg: bytes) -> bytes:
     """A small copy of a photo for the projects page."""
     img = cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
+    if img is None:
+        raise InvalidFrameError("The frame is not an image")
     h, w = img.shape[:2]
     if w > THUMB_WIDTH:
         img = cv2.resize(
@@ -118,7 +124,7 @@ class ProjectStore:
         # Number on from the last frame, not the count, which clashes if one goes from the middle
         number = int(Path(project.frames[-1]).stem) + 1 if project.frames else 1
         name = f"{number:05d}.jpg"
-        thumb = _thumbnail(jpeg)
+        thumb = _thumbnail(jpeg)  # before anything is written, as it also checks the photo
         # Photo first, then the list: a power cut in between only leaves an unlisted file
         _write_atomic(self._dir(project_id) / "frames" / name, jpeg)
         _write_atomic(self._dir(project_id) / "thumb.jpg", thumb)
