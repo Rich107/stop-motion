@@ -31,10 +31,14 @@ def test_when_no_images_are_found_a_clear_error_is_raised(tmp_path: Path):
         list_images(tmp_path)
 
 
-def test_when_building_the_ffmpeg_command_fps_size_hold_last_and_output_are_included(tmp_path: Path):
+def test_when_building_the_ffmpeg_command_fps_size_hold_last_and_output_are_included(
+    tmp_path: Path,
+):
     output = tmp_path / "film.mp4"
 
-    cmd = build_command(tmp_path / "frames.txt", output, fps=10, width=640, height=360, hold_last=1.5)
+    cmd = build_command(
+        tmp_path / "frames.txt", output, fps=10, width=640, height=360, hold_last=1.5
+    )
 
     vf = cmd[cmd.index("-vf") + 1]
     assert cmd[0] == "ffmpeg"

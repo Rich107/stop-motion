@@ -22,3 +22,44 @@ def list_images(directory: Path) -> list[Path]:
     if not images:
         raise NoImagesError(f"No images found in {directory}")
     return images
+
+
+def build_command(
+    list_file: Path, output: Path, fps: float, width: int, height: int, hold_last: float
+) -> list[str]:
+    """ffmpeg arguments that turn a concat list of photos into an H.264 MP4."""
+    # Each photo becomes one frame at `fps`; fit it into WxH (letterbox if the aspect differs),
+    # then hold the last frame for `hold_last` seconds
+    vf = (
+        f"setpts=N/({fps}*TB),fps={fps},"
+        f"scale={width}:{height}:force_original_aspect_ratio=decrease,"
+        f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1,"
+        f"tpad=stop_mode=clone:stop_duration={hold_last},format=yuv420p"
+    )
+    return [
+        "ffmpeg",
+        "-y",
+        "-nostdin",
+        "-loglevel",
+        "error",
+        "-nostats",
+        "-progress",
+        "pipe:1",
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-i",
+        str(list_file),
+        "-vf",
+        vf,
+        "-c:v",
+        "libx264",
+        "-crf",
+        "18",
+        "-preset",
+        "medium",
+        "-movflags",
+        "+faststart",
+        str(output),
+    ]
