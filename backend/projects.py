@@ -143,6 +143,9 @@ class ProjectStore:
     def frame_path(self, project_id: str, index: int) -> Path:
         """File of the project's frame at `index`, counting from 0."""
         project = self.get(project_id)
+        # Python would count a negative index from the end; a frame number from a URL shouldn't
+        if not 0 <= index < len(project.frames):
+            raise IndexError(f"Frame {index} is not in project {project_id}")
         return self._dir(project_id) / "frames" / project.frames[index]
 
     def _next_default_name(self) -> str:
