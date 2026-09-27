@@ -92,6 +92,18 @@ def test_when_the_last_frame_is_undone_it_is_removed_from_disk_and_the_list(tmp_
     assert sorted(p.name for p in frames_dir.iterdir()) == ["00001.jpg", "00002.jpg"]
 
 
+def test_when_the_last_frame_is_undone_the_thumbnail_shows_the_frame_before_it(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+    for brightness in [50, 200]:
+        store.add_frame(project.id, jpeg(brightness=brightness))
+
+    store.undo_last(project.id)
+
+    thumb = cv2.imread(str(tmp_path / "projects" / project.id / "thumb.jpg"))
+    assert abs(thumb.mean() - 50) < 2
+
+
 def ticking_clock():
     """A clock that moves on a minute every time it is read, so creation order is certain."""
     times = (datetime(2026, 9, 27, 9, 0, tzinfo=UTC) + timedelta(minutes=i) for i in range(1000))
