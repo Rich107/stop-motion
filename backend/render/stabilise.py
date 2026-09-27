@@ -108,14 +108,19 @@ class _Matcher:
 
 def compute_transforms(
     images: Sequence[Path],
-    mode: Mode = "reference",
+    mode: Mode = "chain",
     model: Model = "similarity",
     features: Features = "sift",
     exclude: Sequence[Rect] = (),
     ref_index: int = 0,
     detect_size: int = 1600,
 ) -> Alignment:
-    """Work out how far each photo has moved from the reference frame."""
+    """Work out how far each photo has moved from the reference frame.
+
+    `reference` matches every photo straight against the reference frame. `chain` matches each
+    photo against its neighbour and composes the matrices, which copes with a scene that changes
+    a lot over the shoot (only neighbouring photos need to look alike), at the cost of slow drift.
+    """
     if not 0 <= ref_index < len(images):
         raise AlignmentError(f"ref_index must be between 0 and {len(images) - 1}")
 
@@ -126,18 +131,24 @@ def compute_transforms(
     if ref_feats[1] is None or len(ref_feats[0]) < MIN_INLIERS:
         raise AlignmentError("Too few features in the reference frame")
 
-    alignment = Alignment(transforms=[], size=size)
-    prev = np.eye(3)
-    for i, path in enumerate(images):
-        if i == ref_index:
-            M, inliers = np.eye(3), None
-        else:
-            M, inliers = matcher.estimate(matcher.detect(load(path, size)), ref_feats)
+    count = len(images)
+    transforms: list[np.ndarray] = [np.eye(3)] * count
+    inliers: list[int | None] = [None] * count
+    failed: list[int] = []
+    # Walk outwards from the reference: forwards to the last photo, then backwards to the first
+    for order in (range(ref_index + 1, count), range(ref_index - 1, -1, -1)):
+        anchor_feats, anchor_M, prev = ref_feats, np.eye(3), np.eye(3)
+        for i in order:
+            feats = matcher.detect(load(images[i], size))
+            M, inliers[i] = matcher.estimate(feats, anchor_feats)
             if M is None:
                 # Camera most likely stayed wherever it was for the previous frame
-                M = prev
-                alignment.failed.append(i)
-        alignment.transforms.append(M)
-        alignment.inliers.append(inliers)
-        prev = M
-    return alignment
+                transforms[i] = prev
+                failed.append(i)
+            else:
+                transforms[i] = anchor_M @ M
+                if mode == "chain":
+                    # Failed photos never become the anchor, so one bad shot can't break the chain
+                    anchor_feats, anchor_M = feats, transforms[i]
+            prev = transforms[i]
+    return Alignment(transforms=transforms, size=size, failed=sorted(failed), inliers=inliers)

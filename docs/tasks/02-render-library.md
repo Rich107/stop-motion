@@ -48,7 +48,7 @@ HTTP endpoints, background jobs.
 - [x] Natural sort + image listing
 - [x] ffmpeg command builder
 - [x] Reference-mode alignment
-- [ ] Chain-mode alignment
+- [x] Chain-mode alignment
 - [ ] Failure fallback
 - [ ] Common crop
 - [ ] Progress callback
