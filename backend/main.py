@@ -13,3 +13,6 @@ def create_app(settings: Settings) -> FastAPI:
         return {"status": "ok", "revision": settings.revision}
 
     return app
+
+
+app = create_app(Settings.from_env())
