@@ -1,8 +1,11 @@
 from pathlib import Path
 
+import numpy as np
 import pytest
 
-from backend.render.stitch import NoImagesError, build_command, concat_list, list_images
+from backend.render.stitch import NoImagesError, build_command, concat_list, list_images, stitch
+from tests.render.scenes import write_frames
+from tests.render.video import needs_ffmpeg, probe
 
 
 def test_when_images_are_named_img2_and_img10_they_sort_naturally(tmp_path: Path):
@@ -59,3 +62,19 @@ def test_when_a_frame_path_has_a_quote_the_concat_list_escapes_it(tmp_path: Path
         f"file '{tmp_path}/a.jpg'",
         f"file '{tmp_path}/Sam'\\''s film/b.jpg'",
     ]
+
+
+@needs_ffmpeg
+def test_when_ffmpeg_is_available_stitching_makes_a_playable_mp4_with_every_frame(tmp_path: Path):
+    frames = write_frames(
+        [np.full((180, 320, 3), 40 * i, np.uint8) for i in range(5)], tmp_path / "Sam's film"
+    )
+    output = tmp_path / "film.mp4"
+
+    stitch(frames, output, fps=10, width=320, height=180, hold_last=0.5)
+
+    info = probe(output)
+    assert info["codec_name"] == "h264"
+    assert (info["width"], info["height"]) == (320, 180)
+    assert info["r_frame_rate"] == "10/1"
+    assert int(info["nb_read_frames"]) == 5 + 5  # every photo, then half a second of the last
