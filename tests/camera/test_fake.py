@@ -42,5 +42,35 @@ def test_when_a_fake_camera_previews_it_returns_a_jpeg_of_the_preview_size():
     assert decode(jpeg).shape == (90, 160, 3)
 
 
+def test_when_a_fake_camera_previews_twice_the_frames_differ():
+    camera = FakeCamera(still_size=(320, 180), preview_size=(160, 90))
+    camera.start()
+
+    first = camera.preview_jpeg()
+    second = camera.preview_jpeg()
+
+    assert not np.array_equal(decode(first), decode(second))
+
+
+def test_when_two_fake_cameras_share_a_seed_their_frames_match():
+    cameras = [FakeCamera(still_size=(320, 180), preview_size=(160, 90), seed=7) for _ in range(2)]
+    for camera in cameras:
+        camera.start()
+
+    first, second = (camera.preview_jpeg() for camera in cameras)
+
+    assert first == second
+
+
+def test_when_two_fake_cameras_have_different_seeds_their_frames_differ():
+    cameras = [FakeCamera(still_size=(320, 180), preview_size=(160, 90), seed=s) for s in (1, 2)]
+    for camera in cameras:
+        camera.start()
+
+    first, second = (camera.preview_jpeg() for camera in cameras)
+
+    assert first != second
+
+
 def decode(jpeg: bytes) -> np.ndarray:
     return cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)

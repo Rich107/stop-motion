@@ -34,7 +34,7 @@
 - [x] Branch created off fresh `origin/main`
 - [x] Camera protocol
 - [x] FakeCamera capture
-- [ ] FakeCamera preview
+- [x] FakeCamera preview
 - [ ] Lock/unlock
 - [ ] Factory
 - [ ] App lifespan
