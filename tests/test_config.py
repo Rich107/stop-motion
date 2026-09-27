@@ -29,3 +29,11 @@ def test_when_data_env_is_unset_data_dir_defaults_to_data(monkeypatch):
     settings = Settings.from_env()
 
     assert settings.data_dir == Path("./data")
+
+
+def test_when_camera_env_is_pi_settings_use_pi_camera(monkeypatch):
+    monkeypatch.setenv("STOPMOTION_CAMERA", "pi")
+
+    settings = Settings.from_env()
+
+    assert settings.camera == "pi"
