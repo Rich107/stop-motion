@@ -152,7 +152,9 @@ def test_when_a_project_is_renamed_a_new_store_sees_the_new_name(tmp_path: Path)
     assert ProjectStore(tmp_path).get(project.id).name == "Space rocket"
 
 
-def test_when_a_project_is_removed_a_new_store_no_longer_lists_it_or_its_files(tmp_path: Path):
+def test_when_a_project_is_removed_a_new_store_no_longer_lists_it_and_its_folder_is_gone(
+    tmp_path: Path,
+):
     store = ProjectStore(tmp_path)
     kept, removed = store.create("Kept"), store.create("Removed")
     store.add_frame(removed.id, jpeg())
