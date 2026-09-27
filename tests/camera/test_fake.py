@@ -104,6 +104,17 @@ def test_when_locked_settings_are_unlocked_the_fake_camera_reports_them_unlocked
     assert not camera.settings_locked
 
 
+def test_when_a_locked_fake_camera_is_stopped_and_restarted_its_settings_are_unlocked():
+    camera = FakeCamera()
+    camera.start()
+    camera.lock_settings()
+
+    camera.stop()
+    camera.start()
+
+    assert not camera.settings_locked
+
+
 @pytest.mark.parametrize("take", [FakeCamera.preview_jpeg, FakeCamera.capture_jpeg])
 def test_when_a_fake_camera_is_not_started_taking_a_picture_raises_camera_not_open(take):
     camera = FakeCamera()
