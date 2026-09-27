@@ -40,6 +40,7 @@ class FakeCamera:
     def stop(self) -> None:
         with self._lock:
             self._open = False
+            self._locked = False
 
     def preview_jpeg(self) -> bytes:
         return encode_jpeg(self._draw(self.preview_size), quality=70)
