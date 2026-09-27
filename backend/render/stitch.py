@@ -105,11 +105,18 @@ def stitch(
             tempfile.TemporaryFile("w+") as errors,
             subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=errors, text=True) as proc,
         ):
-            # -progress writes key=value lines; frame=N is the number of frames encoded so far
-            for line in proc.stdout:
-                key, _, value = line.strip().partition("=")
-                if progress and key == "frame" and value.isdigit():
-                    progress(min(int(value), total), total, "stitch")
-            if proc.wait() != 0:
-                errors.seek(0)
-                raise StitchError(f"ffmpeg failed making {output}:\n{errors.read()[-2000:]}")
+            try:
+                # -progress writes key=value lines; frame=N is the number of frames encoded so far
+                for line in proc.stdout:
+                    key, _, value = line.strip().partition("=")
+                    if progress and key == "frame" and value.isdigit():
+                        progress(min(int(value), total), total, "stitch")
+                if proc.wait() != 0:
+                    errors.seek(0)
+                    raise StitchError(f"ffmpeg failed making {output}:\n{errors.read()[-2000:]}")
+            except BaseException:
+                # Otherwise leaving the block waits for ffmpeg to finish the whole film
+                proc.kill()
+                proc.wait()
+                output.unlink(missing_ok=True)
+                raise
