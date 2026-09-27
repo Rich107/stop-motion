@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
+import pytest
 
-from backend.camera.picam import auto_controls, fixed_controls, lores_to_bgr
+from backend.camera.base import Camera, CameraNotOpenError
+from backend.camera.picam import PiCamera, auto_controls, fixed_controls, lores_to_bgr
 
 # Stand-ins for libcamera's enums, which only exist on the Pi
 MANUAL = "AfModeEnum.Manual"
@@ -62,3 +64,19 @@ def test_when_a_padded_yuv420_lores_frame_is_converted_it_is_bgr_of_the_preview_
 
     assert out.shape == (height, width, 3)
     assert np.allclose(out.reshape(-1, 3).mean(axis=0), (40, 120, 200), atol=3)
+
+
+@pytest.mark.parametrize(
+    "use",
+    [
+        PiCamera.preview_jpeg,
+        PiCamera.capture_jpeg,
+        PiCamera.lock_settings,
+        PiCamera.unlock_settings,
+    ],
+)
+def test_when_a_pi_camera_is_not_started_using_it_raises_camera_not_open(use):
+    camera = PiCamera()
+
+    with pytest.raises(CameraNotOpenError):
+        use(camera)
