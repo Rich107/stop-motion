@@ -145,6 +145,18 @@ def test_when_a_project_is_removed_a_new_store_no_longer_lists_it_or_its_files(t
     assert not (tmp_path / "projects" / removed.id).exists()
 
 
+def test_when_frame_path_is_given_an_index_it_returns_that_frames_file(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+    photos = [jpeg(brightness=50), jpeg(brightness=200)]
+    for photo in photos:
+        store.add_frame(project.id, photo)
+
+    path = store.frame_path(project.id, 1)
+
+    assert path.read_bytes() == photos[1]
+
+
 @pytest.mark.parametrize("bad_id", ["..", "../outside", "a/b", "/etc", "..\\outside", ".", ""])
 @pytest.mark.parametrize(
     "operation",
