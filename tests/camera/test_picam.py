@@ -23,3 +23,12 @@ def test_when_metadata_has_exposure_gains_and_lens_they_become_fixed_manual_cont
         "AfMode": MANUAL,
         "LensPosition": 3.2,
     }
+
+
+def test_when_metadata_has_no_lens_position_no_focus_controls_are_set():
+    metadata = {"ExposureTime": 16000, "AnalogueGain": 2.5, "ColourGains": (1.9, 1.6)}
+
+    controls = fixed_controls(metadata, manual_af=MANUAL)
+
+    assert "AfMode" not in controls
+    assert "LensPosition" not in controls
