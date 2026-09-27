@@ -104,6 +104,7 @@ class ProjectStore:
 
     def remove(self, project_id: str) -> None:
         """Delete the project and everything in its folder."""
+        self.get(project_id)
         project_dir = self._dir(project_id)
         # Move it aside in one step first, so a power cut mid-delete can't leave half a project
         # in the list (list() skips folders whose names aren't ids)
