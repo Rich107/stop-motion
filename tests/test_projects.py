@@ -34,6 +34,16 @@ def test_when_projects_are_listed_the_newest_is_first(tmp_path: Path):
     assert [p.name for p in projects] == ["Third", "Second", "First"]
 
 
+def test_when_a_folder_has_no_project_json_the_list_skips_it_and_shows_the_rest(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    project = store.create("Dinosaurs")
+    (tmp_path / "projects" / "stray").mkdir()
+
+    projects = store.list()
+
+    assert [p.id for p in projects] == [project.id]
+
+
 def test_when_no_name_is_given_it_is_named_one_after_the_highest_film_number(tmp_path: Path):
     store = ProjectStore(tmp_path)
     for name in ["Film 1", "Dinosaurs", "Film 5"]:
