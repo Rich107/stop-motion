@@ -24,4 +24,8 @@ class Settings:
 
     @classmethod
     def from_env(cls, revision_file: Path = DEFAULT_REVISION_FILE) -> "Settings":
-        return cls(data_dir=Path("./data"), camera="fake", revision=_read_revision(revision_file))
+        return cls(
+            data_dir=Path(os.environ.get("STOPMOTION_DATA", "./data")),
+            camera="fake",
+            revision=_read_revision(revision_file),
+        )
