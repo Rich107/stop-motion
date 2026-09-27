@@ -194,3 +194,31 @@ def common_crop(transforms: Sequence[np.ndarray], size: tuple[int, int]) -> Crop
     # Even sizes, because H.264 with yuv420p needs them
     cw, ch = int(w * frac) & ~1, int(h * frac) & ~1
     return Crop((w - cw) // 2, (h - ch) // 2, cw, ch, frac)
+
+
+def write_aligned(
+    images: Sequence[Path],
+    transforms: Sequence[np.ndarray],
+    crop: Crop | None,
+    out_dir: Path,
+    size: tuple[int, int] | None = None,
+) -> list[Path]:
+    """Warp each photo into place, crop it, and save it as out_dir/frame_NNNNN.jpg.
+
+    `size` is the frame size the transforms were computed at (`Alignment.size`); by default, the
+    first photo's size. Without a crop, edge pixels are stretched to fill the gaps.
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    written = []
+    for i, (path, M) in enumerate(zip(images, transforms, strict=True)):
+        img = load(path, size)
+        size = (img.shape[1], img.shape[0])
+        aligned = cv2.warpPerspective(
+            img, M, size, flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REPLICATE
+        )
+        if crop:
+            aligned = aligned[crop.y : crop.y + crop.height, crop.x : crop.x + crop.width]
+        out = out_dir / f"frame_{i:05d}.jpg"
+        cv2.imwrite(str(out), aligned, [cv2.IMWRITE_JPEG_QUALITY, 95])
+        written.append(out)
+    return written
