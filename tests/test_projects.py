@@ -154,6 +154,28 @@ def test_when_the_only_frame_is_undone_the_thumbnail_is_removed(tmp_path: Path):
     assert not (tmp_path / "projects" / project.id / "thumb.jpg").exists()
 
 
+@pytest.mark.parametrize("damage", ["missing", "corrupt"])
+def test_when_the_previous_frame_is_unreadable_undo_still_removes_the_last_and_drops_the_thumb(
+    tmp_path: Path, damage: str
+):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+    for _ in range(2):
+        store.add_frame(project.id, jpeg())
+    first = tmp_path / "projects" / project.id / "frames" / "00001.jpg"
+    if damage == "missing":
+        first.unlink()
+    else:
+        first.write_bytes(b"not a photo")
+
+    store.undo_last(project.id)
+
+    project_dir = tmp_path / "projects" / project.id
+    assert store.get(project.id).frames == ["00001.jpg"]
+    assert not (project_dir / "frames" / "00002.jpg").exists()
+    assert not (project_dir / "thumb.jpg").exists()
+
+
 def test_when_a_project_is_renamed_a_new_store_sees_the_new_name(tmp_path: Path):
     project = ProjectStore(tmp_path).create("Film 1")
 
