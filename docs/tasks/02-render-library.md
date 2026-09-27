@@ -51,7 +51,7 @@ HTTP endpoints, background jobs.
 - [x] Chain-mode alignment
 - [x] Failure fallback
 - [x] Common crop
-- [ ] Progress callback
+- [x] Progress callback
 - [ ] Stitch integration test
 - [ ] CLI wrappers + smoke tests
 - [ ] PR opened

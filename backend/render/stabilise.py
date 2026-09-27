@@ -211,6 +211,7 @@ def write_aligned(
     crop: Crop | None,
     out_dir: Path,
     size: tuple[int, int] | None = None,
+    progress: Progress | None = None,
 ) -> list[Path]:
     """Warp each photo into place, crop it, and save it as out_dir/frame_NNNNN.jpg.
 
@@ -230,4 +231,6 @@ def write_aligned(
         out = out_dir / f"frame_{i:05d}.jpg"
         cv2.imwrite(str(out), aligned, [cv2.IMWRITE_JPEG_QUALITY, 95])
         written.append(out)
+        if progress:
+            progress(i + 1, len(images), "write")
     return written
