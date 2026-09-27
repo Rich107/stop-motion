@@ -43,6 +43,6 @@ $STOPMOTION_DATA/
 - [x] Add frame
 - [x] Thumbnail + last_capture
 - [x] Undo
-- [ ] Rename + remove + persistence
+- [x] Rename + remove + persistence
 - [ ] Path safety
 - [ ] PR opened

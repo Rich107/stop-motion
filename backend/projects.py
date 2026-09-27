@@ -4,6 +4,7 @@ import json
 import os
 import re
 import secrets
+import shutil
 import tempfile
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
@@ -75,7 +76,11 @@ class ProjectStore:
     def list(self) -> list[Project]:
         if not self.projects_dir.is_dir():
             return []
-        projects = [self._load(d.name) for d in self.projects_dir.iterdir() if d.is_dir()]
+        projects = [
+            self._load(d.name)
+            for d in self.projects_dir.iterdir()
+            if d.is_dir() and not d.name.startswith(".")
+        ]
         return sorted(projects, key=lambda p: p.created_at, reverse=True)
 
     def get(self, project_id: str) -> Project:
@@ -86,6 +91,15 @@ class ProjectStore:
         project.name = name
         self._save(project)
         return project
+
+    def remove(self, project_id: str) -> None:
+        """Delete the project and everything in its folder."""
+        project_dir = self._dir(project_id)
+        # Move it aside in one step first, so a power cut mid-delete can't leave half a project
+        # in the list (list() skips hidden folders)
+        doomed = self.projects_dir / f".removing-{project_id}"
+        os.replace(project_dir, doomed)
+        shutil.rmtree(doomed)
 
     def add_frame(self, project_id: str, jpeg: bytes) -> Project:
         """Save `jpeg` as the project's next frame and record it."""
