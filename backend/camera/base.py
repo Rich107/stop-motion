@@ -2,6 +2,17 @@
 
 from typing import Protocol, runtime_checkable
 
+import cv2
+import numpy as np
+
+
+def encode_jpeg(bgr: np.ndarray, quality: int = 90) -> bytes:
+    # Software JPEG: the Pi 5 has no hardware encoder, and OpenCV's libjpeg-turbo is quick
+    ok, data = cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, quality])
+    if not ok:
+        raise OSError("Could not encode the JPEG")
+    return data.tobytes()
+
 
 @runtime_checkable
 class Camera(Protocol):
