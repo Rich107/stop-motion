@@ -10,7 +10,11 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
+import cv2
+import numpy as np
+
 DEFAULT_NAME = re.compile(r"Film (\d+)")
+THUMB_WIDTH = 480
 
 
 @dataclass
@@ -36,6 +40,20 @@ def _write_atomic(path: Path, data: bytes) -> None:
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise
+
+
+def _thumbnail(jpeg: bytes) -> bytes:
+    """A small copy of a photo for the projects page."""
+    img = cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
+    h, w = img.shape[:2]
+    if w > THUMB_WIDTH:
+        img = cv2.resize(
+            img, (THUMB_WIDTH, round(h * THUMB_WIDTH / w)), interpolation=cv2.INTER_AREA
+        )
+    ok, data = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 80])
+    if not ok:
+        raise OSError("Could not encode the thumbnail")
+    return data.tobytes()
 
 
 class ProjectStore:
@@ -69,8 +87,10 @@ class ProjectStore:
         # Number on from the last frame, not the count, which clashes if one goes from the middle
         number = int(Path(project.frames[-1]).stem) + 1 if project.frames else 1
         name = f"{number:05d}.jpg"
+        thumb = _thumbnail(jpeg)
         # Photo first, then the list: a power cut in between only leaves an unlisted file
         _write_atomic(self._dir(project_id) / "frames" / name, jpeg)
+        _write_atomic(self._dir(project_id) / "thumb.jpg", thumb)
         project.frames.append(name)
         self._save(project)
         return project
