@@ -4,7 +4,14 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from backend.render.stitch import NoImagesError, build_command, concat_list, list_images, stitch
+from backend.render.stitch import (
+    NoImagesError,
+    StitchError,
+    build_command,
+    concat_list,
+    list_images,
+    stitch,
+)
 from tests.render.scenes import write_frames
 from tests.render.video import needs_ffmpeg, probe
 
@@ -123,3 +130,13 @@ def test_when_progress_raises_ffmpeg_is_stopped_and_no_film_is_left(tmp_path: Pa
 
     assert elapsed < 10
     assert not output.exists()
+
+
+def test_when_ffmpeg_is_missing_stitching_raises_a_stitch_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    frames = write_frames([np.zeros((180, 320, 3), np.uint8)], tmp_path)
+    monkeypatch.setenv("PATH", str(tmp_path / "empty"))
+
+    with pytest.raises(StitchError, match="ffmpeg not found"):
+        stitch(frames, tmp_path / "film.mp4", fps=10, width=320, height=180, hold_last=0)
