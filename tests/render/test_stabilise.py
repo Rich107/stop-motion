@@ -101,5 +101,17 @@ def test_when_aligned_frames_are_written_they_line_up_and_are_cropped(tmp_path: 
         assert cv2.absdiff(a[:100], aligned[0][:100]).mean() < 5
 
 
+def test_when_progress_is_given_alignment_calls_it_for_every_frame(tmp_path: Path):
+    scene = textured_scene(seed=1)
+    images = write_frames([camera_view(scene, (i, i), i) for i in range(3)], tmp_path)
+    calls = []
+
+    compute_transforms(
+        images, progress=lambda done, total, stage: calls.append((done, total, stage))
+    )
+
+    assert calls == [(1, 3, "align"), (2, 3, "align"), (3, 3, "align")]
+
+
 def shift_matrix(dx: float, dy: float) -> np.ndarray:
     return np.array([[1, 0, dx], [0, 1, dy], [0, 0, 1]], dtype=float)
