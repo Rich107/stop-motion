@@ -157,6 +157,18 @@ def test_when_frame_path_is_given_an_index_it_returns_that_frames_file(tmp_path:
     assert path.read_bytes() == photos[1]
 
 
+@pytest.mark.parametrize("index", [-1, 1])
+def test_when_frame_path_is_given_an_index_outside_the_frames_it_raises_index_error(
+    tmp_path: Path, index: int
+):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+    store.add_frame(project.id, jpeg())
+
+    with pytest.raises(IndexError):
+        store.frame_path(project.id, index)
+
+
 @pytest.mark.parametrize("bad_id", ["..", "../outside", "a/b", "/etc", "..\\outside", ".", ""])
 @pytest.mark.parametrize(
     "operation",
