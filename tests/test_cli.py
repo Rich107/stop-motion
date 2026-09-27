@@ -47,3 +47,32 @@ def test_when_stopmotion_runs_on_a_small_folder_it_produces_a_video(tmp_path: Pa
     info = probe(output)
     assert (info["width"], info["height"]) == (320, 180)
     assert int(info["nb_read_frames"]) == 4 + 5
+
+
+@needs_ffmpeg
+def test_when_stopmotion_stabilised_runs_in_chain_mode_it_produces_a_video(tmp_path: Path):
+    frames = small_folder(tmp_path / "frames")
+    output = tmp_path / "film.mp4"
+
+    result = run_script(
+        "stopmotion_stabilised.py",
+        frames,
+        "-o",
+        output,
+        "--mode",
+        "chain",
+        "--fps",
+        "10",
+        "--width",
+        "320",
+        "--height",
+        "180",
+        "--hold-last",
+        "0.5",
+        "--keep-frames",
+        tmp_path / "aligned",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert int(probe(output)["nb_read_frames"]) == 4 + 5
+    assert len(list((tmp_path / "aligned").glob("frame_*.jpg"))) == 4
