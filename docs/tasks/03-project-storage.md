@@ -44,5 +44,5 @@ $STOPMOTION_DATA/
 - [x] Thumbnail + last_capture
 - [x] Undo
 - [x] Rename + remove + persistence
-- [ ] Path safety
+- [x] Path safety
 - [ ] PR opened

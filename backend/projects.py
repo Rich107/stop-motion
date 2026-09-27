@@ -16,6 +16,12 @@ import numpy as np
 
 DEFAULT_NAME = re.compile(r"Film (\d+)")
 THUMB_WIDTH = 480
+# An allowlist rather than looking for "..": nothing that can name another folder gets through
+VALID_ID = re.compile(r"[A-Za-z0-9_-]{1,64}")
+
+
+class InvalidProjectIdError(ValueError):
+    """The id could point outside the projects folder, so it's never used as a path."""
 
 
 @dataclass
@@ -79,7 +85,7 @@ class ProjectStore:
         projects = [
             self._load(d.name)
             for d in self.projects_dir.iterdir()
-            if d.is_dir() and not d.name.startswith(".")
+            if d.is_dir() and VALID_ID.fullmatch(d.name)
         ]
         return sorted(projects, key=lambda p: p.created_at, reverse=True)
 
@@ -96,7 +102,7 @@ class ProjectStore:
         """Delete the project and everything in its folder."""
         project_dir = self._dir(project_id)
         # Move it aside in one step first, so a power cut mid-delete can't leave half a project
-        # in the list (list() skips hidden folders)
+        # in the list (list() skips folders whose names aren't ids)
         doomed = self.projects_dir / f".removing-{project_id}"
         os.replace(project_dir, doomed)
         shutil.rmtree(doomed)
@@ -140,6 +146,8 @@ class ProjectStore:
         return f"Film {max(numbers, default=0) + 1}"
 
     def _dir(self, project_id: str) -> Path:
+        if not VALID_ID.fullmatch(project_id):
+            raise InvalidProjectIdError(f"Not a valid project id: {project_id!r}")
         return self.projects_dir / project_id
 
     def _load(self, project_id: str) -> Project:
