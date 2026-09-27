@@ -41,19 +41,19 @@ def test_when_metadata_has_no_lens_position_no_focus_controls_are_set():
     assert "LensPosition" not in controls
 
 
-def test_when_settings_are_unlocked_on_an_autofocus_camera_auto_exposure_wb_and_focus_resume():
+def test_when_an_autofocus_camera_is_unlocked_auto_exposure_white_balance_and_focus_resume():
     controls = auto_controls(continuous_af=CONTINUOUS)
 
     assert controls == {"AeEnable": True, "AwbEnable": True, "AfMode": CONTINUOUS}
 
 
-def test_when_settings_are_unlocked_on_a_fixed_focus_camera_no_focus_mode_is_set():
+def test_when_a_fixed_focus_camera_is_unlocked_only_exposure_and_white_balance_resume():
     controls = auto_controls(continuous_af=None)
 
     assert controls == {"AeEnable": True, "AwbEnable": True}
 
 
-def test_when_a_padded_yuv420_lores_frame_is_converted_it_is_bgr_of_the_preview_size():
+def test_when_padded_yuv420_lores_is_converted_it_is_preview_sized_bgr_with_padding_cropped():
     # picamera2 hands YUV420 back as a (height * 3/2, stride) array, stride padded past the width
     width, height, stride = 160, 90, 192
     bgr = np.full((height, stride, 3), (40, 120, 200), np.uint8)
