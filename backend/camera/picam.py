@@ -16,7 +16,9 @@ def fixed_controls(metadata: Mapping[str, Any], manual_af: Any) -> dict[str, Any
     """
     controls: dict[str, Any] = {"AeEnable": False, "AwbEnable": False}
     controls |= {k: metadata[k] for k in _LOCKED if k in metadata}
-    controls |= {"AfMode": manual_af, "LensPosition": metadata["LensPosition"]}
+    # Only autofocus cameras (like the Module 3) report a lens position or accept AF controls
+    if "LensPosition" in metadata:
+        controls |= {"AfMode": manual_af, "LensPosition": metadata["LensPosition"]}
     return controls
 
 
