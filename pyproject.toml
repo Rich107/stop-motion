@@ -11,8 +11,6 @@ pythonpath = ["."]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-# The CLI scripts predate the linter; task 02 refactors them into backend/render/
-extend-exclude = ["stopmotion.py", "stopmotion_stabilised.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]

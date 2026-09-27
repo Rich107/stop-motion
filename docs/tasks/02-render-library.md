@@ -53,5 +53,5 @@ HTTP endpoints, background jobs.
 - [x] Common crop
 - [x] Progress callback
 - [x] Stitch integration test
-- [ ] CLI wrappers + smoke tests
+- [x] CLI wrappers + smoke tests
 - [ ] PR opened
