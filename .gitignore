@@ -1,0 +1,12 @@
+# Photos and rendered films
+media/
+*.mp4
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# macOS
+.DS_Store
