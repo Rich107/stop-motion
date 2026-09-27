@@ -169,6 +169,20 @@ def test_when_frame_path_is_given_an_index_outside_the_frames_it_raises_index_er
         store.frame_path(project.id, index)
 
 
+def test_when_a_project_has_frames_last_frame_path_returns_the_newest_frames_file(
+    tmp_path: Path,
+):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+    photos = [jpeg(brightness=50), jpeg(brightness=200)]
+    for photo in photos:
+        store.add_frame(project.id, photo)
+
+    path = store.last_frame_path(project.id)
+
+    assert path.read_bytes() == photos[-1]
+
+
 @pytest.mark.parametrize("bad_id", ["..", "../outside", "a/b", "/etc", "..\\outside", ".", ""])
 @pytest.mark.parametrize(
     "operation",
