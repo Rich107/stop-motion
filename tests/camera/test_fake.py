@@ -33,5 +33,14 @@ def test_when_a_fake_camera_captures_it_returns_a_jpeg_of_the_still_size():
     assert decode(jpeg).shape == (180, 320, 3)
 
 
+def test_when_a_fake_camera_previews_it_returns_a_jpeg_of_the_preview_size():
+    camera = FakeCamera(still_size=(320, 180), preview_size=(160, 90))
+    camera.start()
+
+    jpeg = camera.preview_jpeg()
+
+    assert decode(jpeg).shape == (90, 160, 3)
+
+
 def decode(jpeg: bytes) -> np.ndarray:
     return cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
