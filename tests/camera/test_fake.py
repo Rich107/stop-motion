@@ -123,5 +123,13 @@ def test_when_a_fake_camera_is_not_started_taking_a_picture_raises_camera_not_op
         take(camera)
 
 
+@pytest.mark.parametrize("use", [FakeCamera.lock_settings, FakeCamera.unlock_settings])
+def test_when_a_fake_camera_is_not_started_changing_settings_raises_camera_not_open(use):
+    camera = FakeCamera()
+
+    with pytest.raises(CameraNotOpenError):
+        use(camera)
+
+
 def decode(jpeg: bytes) -> np.ndarray:
     return cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
