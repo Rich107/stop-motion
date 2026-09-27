@@ -175,7 +175,7 @@ def main() -> None:
                     args.hold_last,
                     show_progress,
                 )
-    except (NoImagesError, AlignmentError, StitchError) as e:
+    except (NoImagesError, AlignmentError, StitchError, OSError) as e:
         sys.exit(str(e))
 
     if alignment.failed:

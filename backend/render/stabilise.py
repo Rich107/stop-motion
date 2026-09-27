@@ -234,7 +234,9 @@ def write_aligned(
         if crop:
             aligned = aligned[crop.y : crop.y + crop.height, crop.x : crop.x + crop.width]
         out = out_dir / f"frame_{i:05d}.jpg"
-        cv2.imwrite(str(out), aligned, [cv2.IMWRITE_JPEG_QUALITY, 95])
+        # imwrite reports failure (e.g. a full disk) by returning False, not by raising
+        if not cv2.imwrite(str(out), aligned, [cv2.IMWRITE_JPEG_QUALITY, 95]):
+            raise OSError(f"Could not write {out}")
         written.append(out)
         if progress:
             progress(i + 1, len(images), "write")
