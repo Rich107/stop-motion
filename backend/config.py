@@ -8,6 +8,14 @@ from pathlib import Path
 DEFAULT_REVISION_FILE = Path(__file__).resolve().parent.parent / "REVISION"
 
 
+def _read_revision(revision_file: Path) -> str:
+    if "REVISION" in os.environ:
+        return os.environ["REVISION"]
+    if revision_file.is_file():
+        return revision_file.read_text().strip()
+    return "dev"
+
+
 @dataclass(frozen=True)
 class Settings:
     data_dir: Path
@@ -16,6 +24,4 @@ class Settings:
 
     @classmethod
     def from_env(cls, revision_file: Path = DEFAULT_REVISION_FILE) -> "Settings":
-        return cls(
-            data_dir=Path("./data"), camera="fake", revision=os.environ.get("REVISION", "dev")
-        )
+        return cls(data_dir=Path("./data"), camera="fake", revision=_read_revision(revision_file))

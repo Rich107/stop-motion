@@ -35,7 +35,9 @@ Any camera, UI or project logic.
 - [x] Health: status ok
 - [x] Health: revision from env
 - [x] Health: revision default
+- [x] Settings: revision from REVISION file
 - [ ] Settings: data dir env and default
+- [ ] Settings: camera env and default
 - [ ] CI workflow added and green on the PR
 - [ ] README
 - [ ] PR opened
