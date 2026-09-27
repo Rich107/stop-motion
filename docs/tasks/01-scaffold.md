@@ -38,6 +38,6 @@ Any camera, UI or project logic.
 - [x] Settings: revision from REVISION file
 - [x] Settings: data dir env and default
 - [x] Settings: camera env and default
-- [ ] CI workflow added and green on the PR
+- [x] CI workflow added and green on the PR
 - [x] README
-- [ ] PR opened
+- [x] PR opened
