@@ -50,16 +50,21 @@ class FakeCamera:
 
     def lock_settings(self) -> None:
         with self._lock:
+            self._check_open()
             self._locked = True
 
     def unlock_settings(self) -> None:
         with self._lock:
+            self._check_open()
             self._locked = False
+
+    def _check_open(self) -> None:
+        if not self._open:
+            raise CameraNotOpenError("The camera is not started")
 
     def _draw(self, size: Size) -> np.ndarray:
         with self._lock:
-            if not self._open:
-                raise CameraNotOpenError("The camera is not started")
+            self._check_open()
             self._frame += 1
             frame = self._frame
         width, height = size
