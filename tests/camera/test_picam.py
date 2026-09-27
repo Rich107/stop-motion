@@ -1,4 +1,7 @@
-from backend.camera.picam import auto_controls, fixed_controls
+import cv2
+import numpy as np
+
+from backend.camera.picam import auto_controls, fixed_controls, lores_to_bgr
 
 # Stand-ins for libcamera's enums, which only exist on the Pi
 MANUAL = "AfModeEnum.Manual"
@@ -46,3 +49,16 @@ def test_when_settings_are_unlocked_on_a_fixed_focus_camera_no_focus_mode_is_set
     controls = auto_controls(continuous_af=None)
 
     assert controls == {"AeEnable": True, "AwbEnable": True}
+
+
+def test_when_a_padded_yuv420_lores_frame_is_converted_it_is_bgr_of_the_preview_size():
+    # picamera2 hands YUV420 back as a (height * 3/2, stride) array, stride padded past the width
+    width, height, stride = 160, 90, 192
+    bgr = np.full((height, stride, 3), (40, 120, 200), np.uint8)
+    bgr[:, width:] = (255, 0, 255)  # padding, which must not show
+    yuv = cv2.cvtColor(bgr, cv2.COLOR_BGR2YUV_I420)
+
+    out = lores_to_bgr(yuv, (width, height))
+
+    assert out.shape == (height, width, 3)
+    assert np.allclose(out.reshape(-1, 3).mean(axis=0), (40, 120, 200), atol=3)
