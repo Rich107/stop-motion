@@ -50,3 +50,13 @@ def test_when_the_app_starts_the_camera_is_started(tmp_path: Path):
         is_open = camera.is_open
 
     assert is_open
+
+
+def test_when_the_app_shuts_down_the_camera_is_stopped(tmp_path: Path):
+    camera = FakeCamera()
+    app = create_app(Settings(data_dir=tmp_path, camera="fake", revision="dev"), camera=camera)
+
+    with TestClient(app):
+        pass
+
+    assert not camera.is_open
