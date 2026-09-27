@@ -44,7 +44,7 @@ class FakeCamera:
             self._open = False
 
     def preview_jpeg(self) -> bytes:
-        raise NotImplementedError
+        return encode_jpeg(self._draw(self.preview_size), quality=70)
 
     def capture_jpeg(self) -> bytes:
         return encode_jpeg(self._draw(self.still_size))
