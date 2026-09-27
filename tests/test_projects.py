@@ -133,6 +133,17 @@ def test_when_a_project_is_renamed_a_new_store_sees_the_new_name(tmp_path: Path)
     assert ProjectStore(tmp_path).get(project.id).name == "Space rocket"
 
 
+def test_when_a_project_is_removed_a_new_store_no_longer_lists_it_or_its_files(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    kept, removed = store.create("Kept"), store.create("Removed")
+    store.add_frame(removed.id, jpeg())
+
+    store.remove(removed.id)
+
+    assert [p.id for p in ProjectStore(tmp_path).list()] == [kept.id]
+    assert not (tmp_path / "projects" / removed.id).exists()
+
+
 def ticking_clock():
     """A clock that moves on a minute every time it is read, so creation order is certain."""
     times = (datetime(2026, 9, 27, 9, 0, tzinfo=UTC) + timedelta(minutes=i) for i in range(1000))
