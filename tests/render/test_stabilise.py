@@ -3,7 +3,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from backend.render.stabilise import common_crop, compute_transforms
+from backend.render.stabilise import common_crop, compute_transforms, write_aligned
 from tests.render.scenes import (
     HEIGHT,
     WIDTH,
@@ -81,6 +81,24 @@ def test_when_transforms_are_applied_the_common_crop_hides_all_borders():
         assert cropped.min() == 255
     assert crop.width / WIDTH > 0.85
     assert (crop.width, crop.height) == (crop.width & ~1, crop.height & ~1)  # even, for H.264
+
+
+def test_when_aligned_frames_are_written_they_line_up_and_are_cropped(tmp_path: Path):
+    scene = textured_scene(seed=1)
+    shifts = [(0, 0), (10, -6), (-8, 5)]
+    frames = [camera_view(scene, s, i) for i, s in enumerate(shifts)]
+    images = write_frames(frames, tmp_path / "in")
+    transforms = [shift_matrix(dx, dy) for dx, dy in shifts]
+    crop = common_crop(transforms, (WIDTH, HEIGHT))
+
+    written = write_aligned(images, transforms, crop, tmp_path / "out")
+
+    aligned = [cv2.imread(str(p)) for p in written]
+    assert [p.name for p in written] == ["frame_00000.jpg", "frame_00001.jpg", "frame_00002.jpg"]
+    assert all(a.shape == (crop.height, crop.width, 3) for a in aligned)
+    # Compare the strip above the moving subject: the background should now line up
+    for a in aligned[1:]:
+        assert cv2.absdiff(a[:100], aligned[0][:100]).mean() < 5
 
 
 def shift_matrix(dx: float, dy: float) -> np.ndarray:
