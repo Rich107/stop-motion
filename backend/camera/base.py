@@ -6,6 +6,10 @@ import cv2
 import numpy as np
 
 
+class CameraNotOpenError(RuntimeError):
+    """The camera hasn't been started, or has been stopped."""
+
+
 def encode_jpeg(bgr: np.ndarray, quality: int = 90) -> bytes:
     # Software JPEG: the Pi 5 has no hardware encoder, and OpenCV's libjpeg-turbo is quick
     ok, data = cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, quality])

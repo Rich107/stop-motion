@@ -5,7 +5,7 @@ import threading
 import cv2
 import numpy as np
 
-from backend.camera.base import encode_jpeg
+from backend.camera.base import CameraNotOpenError, encode_jpeg
 
 Size = tuple[int, int]  # (width, height)
 
@@ -57,6 +57,8 @@ class FakeCamera:
 
     def _draw(self, size: Size) -> np.ndarray:
         with self._lock:
+            if not self._open:
+                raise CameraNotOpenError("The camera is not started")
             self._frame += 1
             frame = self._frame
         width, height = size
