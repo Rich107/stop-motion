@@ -40,3 +40,20 @@ def test_when_the_scene_changes_gradually_chain_mode_aligns_frames_that_referenc
     assert chain.failed == []
     recovered = [tuple(m[:2, 2]) for m in chain.transforms]
     np.testing.assert_allclose(recovered, shifts, atol=1.0)
+
+
+def test_when_a_frame_cant_be_matched_it_reuses_the_previous_transform_and_is_reported_failed(
+    tmp_path: Path,
+):
+    scene = textured_scene(seed=1)
+    shifts = [(0, 0), (4, 2), (8, 4), (12, 6)]
+    frames = [camera_view(scene, s, i) for i, s in enumerate(shifts)]
+    frames[2] = np.full_like(frames[2], 128)  # lens cap on: nothing to match
+    images = write_frames(frames, tmp_path)
+
+    alignment = compute_transforms(images)
+
+    assert alignment.failed == [2]
+    np.testing.assert_array_equal(alignment.transforms[2], alignment.transforms[1])
+    # The next photo is matched against the last good one, so the chain carries on
+    np.testing.assert_allclose(alignment.transforms[3][:2, 2], shifts[3], atol=1.0)

@@ -49,7 +49,7 @@ HTTP endpoints, background jobs.
 - [x] ffmpeg command builder
 - [x] Reference-mode alignment
 - [x] Chain-mode alignment
-- [ ] Failure fallback
+- [x] Failure fallback
 - [ ] Common crop
 - [ ] Progress callback
 - [ ] Stitch integration test
