@@ -81,6 +81,12 @@ class ProjectStore:
     def get(self, project_id: str) -> Project:
         return self._load(project_id)
 
+    def rename(self, project_id: str, name: str) -> Project:
+        project = self.get(project_id)
+        project.name = name
+        self._save(project)
+        return project
+
     def add_frame(self, project_id: str, jpeg: bytes) -> Project:
         """Save `jpeg` as the project's next frame and record it."""
         project = self.get(project_id)
