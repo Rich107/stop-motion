@@ -3,6 +3,9 @@
 from collections.abc import Mapping
 from typing import Any
 
+import cv2
+import numpy as np
+
 from backend.camera.fake import Size
 
 # What auto exposure, auto white balance and autofocus settled on, read back from the metadata
@@ -31,6 +34,16 @@ def auto_controls(continuous_af: Any | None) -> dict[str, Any]:
     if continuous_af is not None:
         controls["AfMode"] = continuous_af
     return controls
+
+
+def lores_to_bgr(yuv420: np.ndarray, size: Size) -> np.ndarray:
+    """The lores stream's YUV420 array as a BGR image of `size`.
+
+    picamera2 returns it as (height * 3/2, stride) with any row padding left in; OpenCV converts
+    the whole stride's width, then the padding is cut off.
+    """
+    width, height = size
+    return cv2.cvtColor(yuv420, cv2.COLOR_YUV2BGR_I420)[:height, :width]
 
 
 class PiCamera:
