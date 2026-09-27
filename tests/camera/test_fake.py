@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+
 import cv2
 import numpy as np
 import pytest
@@ -71,6 +73,16 @@ def test_when_two_fake_cameras_have_different_seeds_their_frames_differ():
     first, second = (camera.preview_jpeg() for camera in cameras)
 
     assert first != second
+
+
+def test_when_many_threads_preview_at_once_every_frame_is_different():
+    camera = FakeCamera(still_size=(320, 180), preview_size=(160, 90))
+    camera.start()
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        frames = list(pool.map(lambda _: camera.preview_jpeg(), range(64)))
+
+    assert len(set(frames)) == 64
 
 
 def test_when_settings_are_locked_the_fake_camera_reports_them_locked():
