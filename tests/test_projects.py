@@ -183,6 +183,15 @@ def test_when_a_project_has_frames_last_frame_path_returns_the_newest_frames_fil
     assert path.read_bytes() == photos[-1]
 
 
+def test_when_a_project_has_no_frames_last_frame_path_returns_none(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+
+    path = store.last_frame_path(project.id)
+
+    assert path is None
+
+
 @pytest.mark.parametrize("bad_id", ["..", "../outside", "a/b", "/etc", "..\\outside", ".", ""])
 @pytest.mark.parametrize(
     "operation",
