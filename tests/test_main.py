@@ -22,3 +22,12 @@ def test_when_revision_env_is_set_health_reports_it(monkeypatch, tmp_path: Path)
     response = client.get("/health")
 
     assert response.json() == {"status": "ok", "revision": "abc123"}
+
+
+def test_when_no_revision_env_or_file_is_present_health_reports_dev(monkeypatch, tmp_path: Path):
+    monkeypatch.delenv("REVISION", raising=False)
+    client = TestClient(create_app(Settings.from_env(revision_file=tmp_path / "REVISION")))
+
+    response = client.get("/health")
+
+    assert response.json()["revision"] == "dev"
