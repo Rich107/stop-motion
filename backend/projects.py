@@ -24,6 +24,14 @@ class InvalidProjectIdError(ValueError):
     """The id could point outside the projects folder, so it's never used as a path."""
 
 
+class ProjectNotFoundError(LookupError):
+    """No project has this id."""
+
+
+class InvalidFrameError(ValueError):
+    """The bytes given as a frame aren't an image OpenCV can read."""
+
+
 @dataclass
 class Project:
     id: str
@@ -49,10 +57,6 @@ def _write_atomic(path: Path, data: bytes) -> None:
         raise
 
 
-class InvalidFrameError(ValueError):
-    """The bytes given as a frame aren't an image OpenCV can read."""
-
-
 def _thumbnail(jpeg: bytes) -> bytes:
     """A small copy of a photo for the projects page."""
     img = cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
@@ -69,10 +73,6 @@ def _thumbnail(jpeg: bytes) -> bytes:
     return data.tobytes()
 
 
-class ProjectNotFoundError(LookupError):
-    """No project has this id."""
-
-
 class ProjectStore:
     """Creates, reads and changes projects under `data_dir`."""
 
@@ -85,8 +85,12 @@ class ProjectStore:
         if name is None:
             name = self._next_default_name()
         project = Project(id=secrets.token_hex(4), name=name, created_at=self.clock().isoformat())
-        (self._dir(project.id) / "frames").mkdir(parents=True)
-        self._save(project)
+        # Build it in a hidden folder and move it into place in one step, so a power cut can't
+        # leave a folder without a project.json in the list
+        building = self.projects_dir / f".creating-{project.id}"
+        (building / "frames").mkdir(parents=True)
+        self._write_json(building, project)
+        os.replace(building, self._dir(project.id))
         return project
 
     def list(self) -> list[Project]:
@@ -113,7 +117,7 @@ class ProjectStore:
         self.get(project_id)
         project_dir = self._dir(project_id)
         # Move it aside in one step first, so a power cut mid-delete can't leave half a project
-        # in the list (list() skips folders whose names aren't ids)
+        # in the list (list() skips hidden folders, as their names aren't ids)
         doomed = self.projects_dir / f".removing-{project_id}"
         os.replace(project_dir, doomed)
         shutil.rmtree(doomed)
@@ -184,5 +188,9 @@ class ProjectStore:
         return Project(**json.loads(text))
 
     def _save(self, project: Project) -> None:
+        self._write_json(self._dir(project.id), project)
+
+    @staticmethod
+    def _write_json(project_dir: Path, project: Project) -> None:
         text = json.dumps(asdict(project), indent=2) + "\n"
-        _write_atomic(self._dir(project.id) / "project.json", text.encode())
+        _write_atomic(project_dir / "project.json", text.encode())
