@@ -37,7 +37,7 @@
 - [x] FakeCamera preview
 - [x] Lock/unlock
 - [x] Factory
-- [ ] App lifespan
+- [x] App lifespan
 - [ ] Health 503
 - [ ] PiCamera + pure control-building helper
 - [ ] Manual Pi checks listed in PR

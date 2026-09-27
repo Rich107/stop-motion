@@ -17,7 +17,10 @@ def create_app(settings: Settings, camera: Camera | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         camera.start()
-        yield
+        try:
+            yield
+        finally:
+            camera.stop()
 
     app = FastAPI(title="Stop motion", lifespan=lifespan)
     app.state.camera = camera
