@@ -6,6 +6,8 @@ import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
+from backend.render.progress import Progress
+
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 
 
@@ -89,10 +91,12 @@ def stitch(
     width: int,
     height: int,
     hold_last: float,
+    progress: Progress | None = None,
 ) -> None:
     """Turn `frames` into an MP4 at `output`, one frame per photo, holding the last one."""
     if not frames:
         raise NoImagesError("No frames to stitch")
+    total = len(frames) + round(hold_last * fps)
     with tempfile.TemporaryDirectory() as tmp:
         list_file = Path(tmp) / "frames.txt"
         list_file.write_text(concat_list(frames))
@@ -101,7 +105,11 @@ def stitch(
             tempfile.TemporaryFile("w+") as errors,
             subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=errors, text=True) as proc,
         ):
-            proc.stdout.read()
+            # -progress writes key=value lines; frame=N is the number of frames encoded so far
+            for line in proc.stdout:
+                key, _, value = line.strip().partition("=")
+                if progress and key == "frame" and value.isdigit():
+                    progress(min(int(value), total), total, "stitch")
             if proc.wait() != 0:
                 errors.seek(0)
                 raise StitchError(f"ffmpeg failed making {output}:\n{errors.read()[-2000:]}")
