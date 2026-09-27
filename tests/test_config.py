@@ -15,7 +15,7 @@ def test_when_revision_file_is_present_and_env_is_unset_revision_is_read_from_fi
     assert settings.revision == "deadbeef"
 
 
-def test_when_data_env_is_set_settings_use_it(monkeypatch, tmp_path: Path):
+def test_when_data_env_is_set_data_dir_uses_it(monkeypatch, tmp_path: Path):
     monkeypatch.setenv("STOPMOTION_DATA", str(tmp_path / "films"))
 
     settings = Settings.from_env()
