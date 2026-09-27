@@ -36,7 +36,7 @@
 - [x] FakeCamera capture
 - [x] FakeCamera preview
 - [x] Lock/unlock
-- [ ] Factory
+- [x] Factory
 - [ ] App lifespan
 - [ ] Health 503
 - [ ] PiCamera + pure control-building helper
