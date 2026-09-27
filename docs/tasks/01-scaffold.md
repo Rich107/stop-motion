@@ -30,12 +30,14 @@ Any camera, UI or project logic.
 
 ## Progress
 
-- [ ] Branch created off fresh `origin/main`
-- [ ] Tooling files (requirements, pyproject) in place
-- [ ] Health: status ok
-- [ ] Health: revision from env
-- [ ] Health: revision default
-- [ ] Settings: data dir env and default
-- [ ] CI workflow added and green on the PR
-- [ ] README
-- [ ] PR opened
+- [x] Branch created off fresh `origin/main`
+- [x] Tooling files (requirements, pyproject) in place
+- [x] Health: status ok
+- [x] Health: revision from env
+- [x] Health: revision default
+- [x] Settings: revision from REVISION file
+- [x] Settings: data dir env and default
+- [x] Settings: camera env and default
+- [x] CI workflow added and green on the PR
+- [x] README
+- [x] PR opened
