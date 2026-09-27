@@ -44,14 +44,14 @@ HTTP endpoints, background jobs.
 
 ## Progress
 
-- [ ] Branch created off fresh `origin/main`
-- [ ] Natural sort + image listing
-- [ ] ffmpeg command builder
-- [ ] Reference-mode alignment
-- [ ] Chain-mode alignment
-- [ ] Failure fallback
-- [ ] Common crop
-- [ ] Progress callback
-- [ ] Stitch integration test
-- [ ] CLI wrappers + smoke tests
-- [ ] PR opened
+- [x] Branch created off fresh `origin/main`
+- [x] Natural sort + image listing
+- [x] ffmpeg command builder
+- [x] Reference-mode alignment
+- [x] Chain-mode alignment
+- [x] Failure fallback
+- [x] Common crop
+- [x] Progress callback
+- [x] Stitch integration test
+- [x] CLI wrappers + smoke tests
+- [x] PR opened (#4), CI green
