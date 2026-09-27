@@ -115,6 +115,16 @@ def test_when_undo_is_called_on_an_empty_project_it_leaves_it_empty_without_erro
     assert store.get(project.id).frames == []
 
 
+def test_when_the_only_frame_is_undone_the_thumbnail_is_removed(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+    store.add_frame(project.id, jpeg())
+
+    store.undo_last(project.id)
+
+    assert not (tmp_path / "projects" / project.id / "thumb.jpg").exists()
+
+
 def ticking_clock():
     """A clock that moves on a minute every time it is read, so creation order is certain."""
     times = (datetime(2026, 9, 27, 9, 0, tzinfo=UTC) + timedelta(minutes=i) for i in range(1000))
