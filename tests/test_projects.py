@@ -6,8 +6,9 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import pytest
 
-from backend.projects import ProjectStore
+from backend.projects import InvalidProjectIdError, ProjectStore
 
 
 def test_when_a_project_is_created_it_appears_in_the_list_with_zero_frames(tmp_path: Path):
@@ -142,6 +143,25 @@ def test_when_a_project_is_removed_a_new_store_no_longer_lists_it_or_its_files(t
 
     assert [p.id for p in ProjectStore(tmp_path).list()] == [kept.id]
     assert not (tmp_path / "projects" / removed.id).exists()
+
+
+@pytest.mark.parametrize("bad_id", ["..", "../outside", "a/b", "/etc", "..\\outside", ".", ""])
+@pytest.mark.parametrize(
+    "operation",
+    [
+        lambda store, bad_id: store.get(bad_id),
+        lambda store, bad_id: store.rename(bad_id, "Oops"),
+        lambda store, bad_id: store.remove(bad_id),
+        lambda store, bad_id: store.add_frame(bad_id, jpeg()),
+        lambda store, bad_id: store.undo_last(bad_id),
+    ],
+    ids=["get", "rename", "remove", "add_frame", "undo_last"],
+)
+def test_when_an_id_contains_dots_or_a_slash_it_is_rejected(tmp_path: Path, bad_id, operation):
+    store = ProjectStore(tmp_path / "data")
+
+    with pytest.raises(InvalidProjectIdError):
+        operation(store, bad_id)
 
 
 def ticking_clock():
