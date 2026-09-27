@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
+import pytest
 
-from backend.camera.base import Camera
+from backend.camera.base import Camera, CameraNotOpenError
 from backend.camera.fake import FakeCamera
 
 
@@ -70,6 +71,14 @@ def test_when_two_fake_cameras_have_different_seeds_their_frames_differ():
     first, second = (camera.preview_jpeg() for camera in cameras)
 
     assert first != second
+
+
+@pytest.mark.parametrize("take", [FakeCamera.preview_jpeg, FakeCamera.capture_jpeg])
+def test_when_a_fake_camera_is_not_started_taking_a_picture_raises_camera_not_open(take):
+    camera = FakeCamera()
+
+    with pytest.raises(CameraNotOpenError):
+        take(camera)
 
 
 def decode(jpeg: bytes) -> np.ndarray:
