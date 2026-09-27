@@ -40,7 +40,7 @@ $STOPMOTION_DATA/
 - [x] Branch created off fresh `origin/main`
 - [x] Create + list
 - [x] Default names
-- [ ] Add frame
+- [x] Add frame
 - [ ] Thumbnail + last_capture
 - [ ] Undo
 - [ ] Rename + remove + persistence

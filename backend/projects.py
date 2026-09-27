@@ -60,6 +60,21 @@ class ProjectStore:
         projects = [self._load(d.name) for d in self.projects_dir.iterdir() if d.is_dir()]
         return sorted(projects, key=lambda p: p.created_at, reverse=True)
 
+    def get(self, project_id: str) -> Project:
+        return self._load(project_id)
+
+    def add_frame(self, project_id: str, jpeg: bytes) -> Project:
+        """Save `jpeg` as the project's next frame and record it."""
+        project = self.get(project_id)
+        # Number on from the last frame, not the count, which clashes if one goes from the middle
+        number = int(Path(project.frames[-1]).stem) + 1 if project.frames else 1
+        name = f"{number:05d}.jpg"
+        # Photo first, then the list: a power cut in between only leaves an unlisted file
+        _write_atomic(self._dir(project_id) / "frames" / name, jpeg)
+        project.frames.append(name)
+        self._save(project)
+        return project
+
     def _next_default_name(self) -> str:
         # One more than the highest rather than count + 1, which can repeat a name after a removal
         numbers = [int(m[1]) for p in self.list() if (m := DEFAULT_NAME.fullmatch(p.name))]
