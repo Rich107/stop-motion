@@ -13,4 +13,5 @@ def natural_key(path: Path) -> list[int | str]:
 
 def list_images(directory: Path) -> list[Path]:
     """Images in `directory`, in natural name order."""
-    return sorted(directory.iterdir(), key=natural_key)
+    images = (f for f in directory.iterdir() if f.is_file() and f.suffix.lower() in IMAGE_EXTS)
+    return sorted(images, key=natural_key)
