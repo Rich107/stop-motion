@@ -2,8 +2,14 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import pytest
 
-from backend.render.stabilise import common_crop, compute_transforms, write_aligned
+from backend.render.stabilise import (
+    AlignmentError,
+    common_crop,
+    compute_transforms,
+    write_aligned,
+)
 from tests.render.scenes import (
     HEIGHT,
     WIDTH,
@@ -80,6 +86,13 @@ def test_when_transforms_are_applied_the_common_crop_hides_all_borders():
         assert cropped.min() == 255
     assert crop.width / WIDTH > 0.85
     assert (crop.width, crop.height) == (crop.width & ~1, crop.height & ~1)  # even, for H.264
+
+
+def test_when_frames_share_no_common_area_the_crop_raises_a_clear_error():
+    transforms = [np.eye(3), shift_matrix(WIDTH + 10, 0)]
+
+    with pytest.raises(AlignmentError, match="--no-crop"):
+        common_crop(transforms, (WIDTH, HEIGHT))
 
 
 def test_when_aligned_frames_are_written_they_line_up_and_are_cropped(tmp_path: Path):
