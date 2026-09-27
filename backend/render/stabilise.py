@@ -152,3 +152,45 @@ def compute_transforms(
                     anchor_feats, anchor_M = feats, transforms[i]
             prev = transforms[i]
     return Alignment(transforms=transforms, size=size, failed=sorted(failed), inliers=inliers)
+
+
+@dataclass(frozen=True)
+class Crop:
+    x: int
+    y: int
+    width: int
+    height: int
+    fraction: float  # of the original width and height
+
+
+def common_crop(transforms: Sequence[np.ndarray], size: tuple[int, int]) -> Crop:
+    """Largest centred rectangle (same aspect ratio) that every aligned frame fully covers."""
+    w, h = size
+    # Work on a small copy: it only needs to be accurate to a fraction of a percent
+    s = 400 / max(w, h)
+    sw, sh = round(w * s), round(h * s)
+    S = np.diag([s, s, 1.0])
+    S_inv = np.linalg.inv(S)
+
+    ones = np.full((sh, sw), 255, np.uint8)
+    valid = ones.copy()
+    for M in transforms:
+        valid &= cv2.warpPerspective(
+            ones, S @ M @ S_inv, (sw, sh), flags=cv2.INTER_NEAREST, borderValue=0
+        )
+
+    lo, hi = 0.0, 1.0
+    for _ in range(20):
+        mid = (lo + hi) / 2
+        cw, ch = int(sw * mid), int(sh * mid)
+        x0, y0 = (sw - cw) // 2, (sh - ch) // 2
+        region = valid[y0 : y0 + ch, x0 : x0 + cw]
+        if region.size and region.min() == 255:
+            lo = mid
+        else:
+            hi = mid
+
+    frac = lo * 0.99  # small safety margin for rounding at the edges
+    # Even sizes, because H.264 with yuv420p needs them
+    cw, ch = int(w * frac) & ~1, int(h * frac) & ~1
+    return Crop((w - cw) // 2, (h - ch) // 2, cw, ch, frac)

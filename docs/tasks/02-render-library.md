@@ -50,7 +50,7 @@ HTTP endpoints, background jobs.
 - [x] Reference-mode alignment
 - [x] Chain-mode alignment
 - [x] Failure fallback
-- [ ] Common crop
+- [x] Common crop
 - [ ] Progress callback
 - [ ] Stitch integration test
 - [ ] CLI wrappers + smoke tests
