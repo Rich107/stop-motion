@@ -8,7 +8,12 @@ import cv2
 import numpy as np
 import pytest
 
-from backend.projects import InvalidProjectIdError, ProjectNotFoundError, ProjectStore
+from backend.projects import (
+    InvalidFrameError,
+    InvalidProjectIdError,
+    ProjectNotFoundError,
+    ProjectStore,
+)
 
 
 def test_when_a_project_is_created_it_appears_in_the_list_with_zero_frames(tmp_path: Path):
@@ -53,6 +58,19 @@ def test_when_frames_are_added_they_are_saved_with_the_next_number_and_listed_in
     saved = json.loads((project_dir / "project.json").read_text())
     assert saved["frames"] == ["00001.jpg", "00002.jpg"]
     assert [(project_dir / "frames" / name).read_bytes() for name in saved["frames"]] == photos
+
+
+def test_when_the_added_bytes_are_not_an_image_it_is_rejected_and_nothing_is_saved(
+    tmp_path: Path,
+):
+    store = ProjectStore(tmp_path)
+    project = store.create()
+
+    with pytest.raises(InvalidFrameError):
+        store.add_frame(project.id, b"not a photo")
+
+    assert store.get(project.id).frames == []
+    assert list((tmp_path / "projects" / project.id / "frames").iterdir()) == []
 
 
 def test_when_a_frame_is_added_the_thumbnail_is_a_480_wide_copy_of_it(tmp_path: Path):
