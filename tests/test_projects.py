@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from backend.projects import ProjectStore
@@ -9,3 +10,19 @@ def test_when_a_project_is_created_it_appears_in_the_list_with_zero_frames(tmp_p
     project = store.create("Dinosaurs")
 
     assert [(p.id, p.name, p.frames) for p in store.list()] == [(project.id, "Dinosaurs", [])]
+
+
+def test_when_projects_are_listed_the_newest_is_first(tmp_path: Path):
+    store = ProjectStore(tmp_path, clock=ticking_clock())
+    for name in ["First", "Second", "Third"]:
+        store.create(name)
+
+    projects = store.list()
+
+    assert [p.name for p in projects] == ["Third", "Second", "First"]
+
+
+def ticking_clock():
+    """A clock that moves on a minute every time it is read, so creation order is certain."""
+    times = (datetime(2026, 9, 27, 9, 0, tzinfo=UTC) + timedelta(minutes=i) for i in range(1000))
+    return lambda: next(times)
