@@ -73,6 +73,15 @@ def test_when_two_fake_cameras_have_different_seeds_their_frames_differ():
     assert first != second
 
 
+def test_when_settings_are_locked_the_fake_camera_reports_them_locked():
+    camera = FakeCamera()
+    camera.start()
+
+    camera.lock_settings()
+
+    assert camera.settings_locked
+
+
 @pytest.mark.parametrize("take", [FakeCamera.preview_jpeg, FakeCamera.capture_jpeg])
 def test_when_a_fake_camera_is_not_started_taking_a_picture_raises_camera_not_open(take):
     camera = FakeCamera()
