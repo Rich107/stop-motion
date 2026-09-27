@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 import numpy as np
@@ -99,3 +100,26 @@ def test_when_progress_is_given_stitching_reports_up_to_the_total_frame_count(tm
 
     assert calls[-1] == (10, 10, "stitch")
     assert all(total == 10 and stage == "stitch" for _, total, stage in calls)
+
+
+class Cancelled(Exception):
+    pass
+
+
+@needs_ffmpeg
+def test_when_progress_raises_ffmpeg_is_stopped_and_no_film_is_left(tmp_path: Path):
+    noise = np.random.default_rng(0).integers(0, 256, (720, 1280, 3), np.uint8)
+    frames = write_frames([noise] * 3, tmp_path)
+    output = tmp_path / "film.mp4"
+
+    def cancel(done: int, total: int, stage: str) -> None:
+        raise Cancelled
+
+    started = time.monotonic()
+    with pytest.raises(Cancelled):
+        # Ten minutes of held noise: far longer to encode than the time allowed below
+        stitch(frames, output, fps=30, width=1280, height=720, hold_last=600, progress=cancel)
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 10
+    assert not output.exists()
