@@ -202,6 +202,11 @@ def common_crop(transforms: Sequence[np.ndarray], size: tuple[int, int]) -> Crop
     frac = lo * 0.99  # small safety margin for rounding at the edges
     # Even sizes, because H.264 with yuv420p needs them
     cw, ch = int(w * frac) & ~1, int(h * frac) & ~1
+    if cw == 0 or ch == 0:
+        raise AlignmentError(
+            "The aligned frames share no common area to crop to. One or more frames moved a lot "
+            "(or were matched wrongly); check them, or use --no-crop"
+        )
     return Crop((w - cw) // 2, (h - ch) // 2, cw, ch, frac)
 
 
