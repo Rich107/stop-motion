@@ -50,7 +50,8 @@ class FakeCamera:
         return encode_jpeg(self._draw(self.still_size))
 
     def lock_settings(self) -> None:
-        raise NotImplementedError
+        with self._lock:
+            self._locked = True
 
     def unlock_settings(self) -> None:
         raise NotImplementedError
