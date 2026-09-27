@@ -5,9 +5,7 @@ import threading
 import cv2
 import numpy as np
 
-from backend.camera.base import CameraNotOpenError, encode_jpeg
-
-Size = tuple[int, int]  # (width, height)
+from backend.camera.base import CameraNotOpenError, Size, encode_jpeg
 
 
 class FakeCamera:
@@ -66,7 +64,7 @@ class FakeCamera:
         width, height = size
         bars = np.repeat(self._colours, -(-width // len(self._colours)), axis=0)[:width]
         img = np.ascontiguousarray(np.broadcast_to(bars, (height, width, 3)))
-        # The ball crosses the frame every 60 frames, so consecutive frames always differ
+        # The ball crosses every 60 frames; with the counter, no two frames in a row match
         x = round((frame % 60) / 60 * width)
         radius = max(2, height // 8)
         cv2.circle(img, (x, height // 2), radius, (255, 255, 255), -1)

@@ -7,8 +7,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-from backend.camera.base import CameraNotOpenError, encode_jpeg
-from backend.camera.fake import Size
+from backend.camera.base import CameraNotOpenError, Size, encode_jpeg
 
 MAX_FRAME_US = 100_000  # longest frame (and so exposure) the preview may slow to: 10 fps
 # What auto exposure, auto white balance and autofocus settled on, read back from the metadata
@@ -88,7 +87,7 @@ class PiCamera:
                     self._af_modes = (controls.AfModeEnum.Manual, controls.AfModeEnum.Continuous)
                 config = picam2.create_still_configuration(
                     # RGB888 comes out in OpenCV's BGR order. The Pi 4 only allows a YUV lores
-                    # stream; the Pi 5 could do RGB, but converting 720p costs about a millisecond
+                    # stream; the Pi 5 could do RGB, but YUV works on both and converts cheaply
                     main={"size": self.still_size, "format": "RGB888"},
                     lores={"size": self.preview_size, "format": "YUV420"},
                     # Two full-res buffers so the preview keeps flowing (the default is one)

@@ -5,6 +5,8 @@ from typing import Protocol, runtime_checkable
 import cv2
 import numpy as np
 
+Size = tuple[int, int]  # (width, height)
+
 
 class CameraNotOpenError(RuntimeError):
     """The camera hasn't been started, or has been stopped."""
