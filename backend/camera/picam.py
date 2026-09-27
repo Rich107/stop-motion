@@ -22,12 +22,15 @@ def fixed_controls(metadata: Mapping[str, Any], manual_af: Any) -> dict[str, Any
     return controls
 
 
-def auto_controls(continuous_af: Any) -> dict[str, Any]:
+def auto_controls(continuous_af: Any | None) -> dict[str, Any]:
     """Controls that hand exposure, white balance and focus back to the camera.
 
-    `continuous_af` is libcamera's `controls.AfModeEnum.Continuous`.
+    `continuous_af` is libcamera's `controls.AfModeEnum.Continuous`, or None without autofocus.
     """
-    return {"AeEnable": True, "AwbEnable": True, "AfMode": continuous_af}
+    controls: dict[str, Any] = {"AeEnable": True, "AwbEnable": True}
+    if continuous_af is not None:
+        controls["AfMode"] = continuous_af
+    return controls
 
 
 class PiCamera:
