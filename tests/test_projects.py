@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import pytest
 
-from backend.projects import InvalidProjectIdError, ProjectStore
+from backend.projects import InvalidProjectIdError, ProjectNotFoundError, ProjectStore
 
 
 def test_when_a_project_is_created_it_appears_in_the_list_with_zero_frames(tmp_path: Path):
@@ -190,6 +190,13 @@ def test_when_a_project_has_no_frames_last_frame_path_returns_none(tmp_path: Pat
     path = store.last_frame_path(project.id)
 
     assert path is None
+
+
+def test_when_a_project_does_not_exist_get_raises_project_not_found(tmp_path: Path):
+    store = ProjectStore(tmp_path)
+
+    with pytest.raises(ProjectNotFoundError):
+        store.get("abc123")
 
 
 @pytest.mark.parametrize("bad_id", ["..", "../outside", "a/b", "/etc", "..\\outside", ".", ""])
