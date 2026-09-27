@@ -30,8 +30,8 @@ Any camera, UI or project logic.
 
 ## Progress
 
-- [ ] Branch created off fresh `origin/main`
-- [ ] Tooling files (requirements, pyproject) in place
+- [x] Branch created off fresh `origin/main`
+- [x] Tooling files (requirements, pyproject) in place
 - [ ] Health: status ok
 - [ ] Health: revision from env
 - [ ] Health: revision default
