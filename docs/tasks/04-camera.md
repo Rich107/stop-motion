@@ -40,5 +40,5 @@
 - [x] App lifespan
 - [x] Health 503
 - [x] PiCamera + pure control-building helper
-- [ ] Manual Pi checks listed in PR
-- [ ] PR opened
+- [x] Manual Pi checks listed in PR
+- [x] PR opened
