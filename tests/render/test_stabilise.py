@@ -113,5 +113,21 @@ def test_when_progress_is_given_alignment_calls_it_for_every_frame(tmp_path: Pat
     assert calls == [(1, 3, "align"), (2, 3, "align"), (3, 3, "align")]
 
 
+def test_when_progress_is_given_writing_calls_it_for_every_frame(tmp_path: Path):
+    scene = textured_scene(seed=1)
+    images = write_frames([camera_view(scene, (0, 0), i) for i in range(3)], tmp_path / "in")
+    calls = []
+
+    write_aligned(
+        images,
+        [np.eye(3)] * 3,
+        None,
+        tmp_path / "out",
+        progress=lambda done, total, stage: calls.append((done, total, stage)),
+    )
+
+    assert calls == [(1, 3, "write"), (2, 3, "write"), (3, 3, "write")]
+
+
 def shift_matrix(dx: float, dy: float) -> np.ndarray:
     return np.array([[1, 0, dx], [0, 1, dy], [0, 0, 1]], dtype=float)
